@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Honey</string>
+    <string name="tagline">Tracker de Parejas</string>
+
+    <!-- Auth -->
+    <string name="login_title">Iniciar Sesión</string>
+    <string name="register_title">Registrarse</string>
+    <string name="auth_required">Obligatorio para vincular</string>
+    <string name="email_or_user">Usuario / PIN</string>
+    <string name="password_label">Clave (4 dígitos)</string>
+    <string name="btn_login">Entrar</string>
+    <string name="btn_register">Crear Cuenta</string>
+    <string name="quick_test_user">Autocompletar Prueba</string>
+    <string name="auth_error">Credenciales inválidas</string>
+
+    <!-- Initial Setup & Match -->
+    <string name="setup_title">Configuración Inicial</string>
+    <string name="setup_partner_match">Vincular Smartwatch</string>
+    <string name="my_code_label">Tu Código de Pareja:</string>
+    <string name="enter_partner_code">Código de tu Pareja</string>
+    <string name="anniversary_date_label">Fecha de Inicio de Noviazgo</string>
+    <string name="day">Día</string>
+    <string name="month">Mes</string>
+    <string name="year">Año</string>
+    <string name="btn_complete_setup">Comenzar Honey 💞</string>
+
+    <!-- Home Watchface -->
+    <string name="days_together_format">%1$d días juntos</string>
+    <string name="partner_mood_prefix">Su ánimo:</string>
+    <string name="my_mood_prefix">Tu ánimo:</string>
+    <string name="status_connected">Sincronizado</string>
+    <string name="status_dnd">No molestar</string>
+
+    <!-- Main Navigation Tiles -->
+    <string name="nav_touch">Cariño</string>
+    <string name="nav_messages">Mensajes</string>
+    <string name="nav_location">Ubicación</string>
+    <string name="nav_mood">Ánimo</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Touch / Cariño Modes -->
+    <string name="touch_title">Enviar Cariño</string>
+    <string name="touch_subtitle">Toca para enviar un pulso háptico</string>
+    <string name="mode_carino">Cariño</string>
+    <string name="desc_carino">Toque suave de pulso cardíaco</string>
+    <string name="mode_abrazo">Abrazo</string>
+    <string name="desc_abrazo">Vibración cálida y profunda</string>
+    <string name="mode_beso">Beso</string>
+    <string name="desc_beso">Ráfaga de besos y cosquilleo</string>
+    <string name="touch_sent">¡Cariño enviado! 💗</string>
+    <string name="touch_received_carino">¡Te envió un Toque de Cariño! 💗</string>
+    <string name="touch_received_abrazo">¡Te envió un Gran Abrazo! 🤗</string>
+    <string name="touch_received_beso">¡Te envió un Dulce Beso! 😘</string>
+
+    <!-- Quick Messages -->
+    <string name="quick_messages_title">Mensajes Rápidos</string>
+    <string name="msg_love">Te quiero</string>
+    <string name="msg_on_my_way">Voy en camino</string>
+    <string name="msg_arrived">Ya llegué</string>
+    <string name="msg_thinking">Pensando en ti</string>
+    <string name="msg_call_me">Llámame</string>
+    <string name="msg_good_night">Buenas noches</string>
+    <string name="msg_sent_toast">Mensaje enviado ✓</string>
+
+    <!-- Real-time Location -->
+    <string name="location_title">Ubicación GPS</string>
+    <string name="share_location_switch">Compartir mi ubicación</string>
+    <string name="sharing_active">Compartiendo en tiempo real</string>
+    <string name="sharing_inactive">Ubicación oculta</string>
+    <string name="distance_format">a %1$s de ti</string>
+    <string name="partner_not_sharing">Tu pareja no está compartiendo su ubicación</string>
+    <string name="btn_refresh_gps">Actualizar GPS</string>
+
+    <!-- Mood Tracker -->
+    <string name="mood_title">¿Cómo te sientes?</string>
+    <string name="mood_happy">Feliz</string>
+    <string name="mood_in_love">Enamorado/a</string>
+    <string name="mood_tired">Cansado/a</string>
+    <string name="mood_cuddle">Necesito mimos</string>
+    <string name="mood_stressed">Estresado/a</string>
+    <string name="mood_playful">Juguetón/a</string>
+    <string name="mood_updated">Ánimo actualizado ✓</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="pref_language">Idioma</string>
+    <string name="pref_theme">Tema de Color</string>
+    <string name="pref_dark_mode">Modo Oscuro OLED</string>
+    <string name="pref_dnd">Modo No Molestar</string>
+    <string name="pref_dnd_desc">Silencia toques y guarda resumen</string>
+    <string name="pref_vibration">Vibración háptica</string>
+    <string name="pref_vibration_desc">Activar motor de reloj</string>
+    <string name="pref_logout">Cerrar Sesión / Desvincular</string>
+    <string name="dnd_summary_title">Mientras descansabas:</string>
+    <string name="dnd_summary_format">%1$d toques y %2$d mensajes recibidos</string>
+</resources>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Honey</string>
+    <string name="tagline">Couples Watch Tracker</string>
+
+    <!-- Auth -->
+    <string name="login_title">Sign In</string>
+    <string name="register_title">Register</string>
+    <string name="auth_required">Required to link watch</string>
+    <string name="email_or_user">User / PIN</string>
+    <string name="password_label">PIN (4 digits)</string>
+    <string name="btn_login">Log In</string>
+    <string name="btn_register">Create Account</string>
+    <string name="quick_test_user">Quick Demo Fill</string>
+    <string name="auth_error">Invalid credentials</string>
+
+    <!-- Initial Setup & Match -->
+    <string name="setup_title">Initial Setup</string>
+    <string name="setup_partner_match">Pair Smartwatch</string>
+    <string name="my_code_label">Your Partner Code:</string>
+    <string name="enter_partner_code">Partner's Code</string>
+    <string name="anniversary_date_label">Anniversary Date</string>
+    <string name="day">Day</string>
+    <string name="month">Month</string>
+    <string name="year">Year</string>
+    <string name="btn_complete_setup">Launch Honey 💞</string>
+
+    <!-- Home Watchface -->
+    <string name="days_together_format">%1$d days together</string>
+    <string name="partner_mood_prefix">Partner mood:</string>
+    <string name="my_mood_prefix">My mood:</string>
+    <string name="status_connected">Synced</string>
+    <string name="status_dnd">Do not disturb</string>
+
+    <!-- Main Navigation Tiles -->
+    <string name="nav_touch">Touch</string>
+    <string name="nav_messages">Messages</string>
+    <string name="nav_location">Location</string>
+    <string name="nav_mood">Mood</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Touch / Cariño Modes -->
+    <string name="touch_title">Send Love Touch</string>
+    <string name="touch_subtitle">Tap to send a haptic pulse</string>
+    <string name="mode_carino">Love Touch</string>
+    <string name="desc_carino">Soft rhythmic heartbeat</string>
+    <string name="mode_abrazo">Hug</string>
+    <string name="desc_abrazo">Warm deep vibration</string>
+    <string name="mode_beso">Kiss</string>
+    <string name="desc_beso">Sparkling kiss burst</string>
+    <string name="touch_sent">Love sent! 💗</string>
+    <string name="touch_received_carino">Sent you a Love Touch! 💗</string>
+    <string name="touch_received_abrazo">Sent you a Big Hug! 🤗</string>
+    <string name="touch_received_beso">Sent you a Sweet Kiss! 😘</string>
+
+    <!-- Quick Messages -->
+    <string name="quick_messages_title">Quick Messages</string>
+    <string name="msg_love">Love you</string>
+    <string name="msg_on_my_way">On my way</string>
+    <string name="msg_arrived">I'm here</string>
+    <string name="msg_thinking">Thinking of you</string>
+    <string name="msg_call_me">Call me</string>
+    <string name="msg_good_night">Good night</string>
+    <string name="msg_sent_toast">Message sent ✓</string>
+
+    <!-- Real-time Location -->
+    <string name="location_title">GPS Location</string>
+    <string name="share_location_switch">Share my location</string>
+    <string name="sharing_active">Sharing in real time</string>
+    <string name="sharing_inactive">Location hidden</string>
+    <string name="distance_format">%1$s away from you</string>
+    <string name="partner_not_sharing">Your partner is not sharing location</string>
+    <string name="btn_refresh_gps">Refresh GPS</string>
+
+    <!-- Mood Tracker -->
+    <string name="mood_title">How are you feeling?</string>
+    <string name="mood_happy">Happy</string>
+    <string name="mood_in_love">In Love</string>
+    <string name="mood_tired">Tired</string>
+    <string name="mood_cuddle">Need cuddles</string>
+    <string name="mood_stressed">Stressed</string>
+    <string name="mood_playful">Playful</string>
+    <string name="mood_updated">Mood updated ✓</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="pref_language">Language</string>
+    <string name="pref_theme">Color Theme</string>
+    <string name="pref_dark_mode">OLED Dark Mode</string>
+    <string name="pref_dnd">Do Not Disturb</string>
+    <string name="pref_dnd_desc">Silence touches and save summary</string>
+    <string name="pref_vibration">Haptic Vibration</string>
+    <string name="pref_vibration_desc">Enable watch vibration motor</string>
+    <string name="pref_logout">Sign Out / Unpair</string>
+    <string name="dnd_summary_title">While you were resting:</string>
+    <string name="dnd_summary_format">%1$d touches and %2$d messages received</string>
+</resources>
