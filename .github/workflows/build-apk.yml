@@ -34,6 +34,9 @@ jobs:
         with:
           gradle-version: '8.7'
 
+      - name: Validate Android String Resources
+        run: python3 scripts/validate_strings.py
+
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
 
