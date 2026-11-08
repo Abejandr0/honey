@@ -96,10 +96,10 @@ Envío inmediato a un toque de las 6 frases esenciales:
 ## 📦 Cómo obtener y compilar el archivo `.apk`
 
 ### Opción 1: Descarga directa desde GitHub Actions (Recomendada)
-Gracias al flujo de integración continua incluido (`.github/workflows/build-apk.yml`), GitHub compila automáticamente el archivo instalable en cada cambio:
+Gracias al flujo de integración continua incluido (`.github/workflows/build-apk.yml`), GitHub compila automáticamente el archivo instalable en cada cambio utilizando el toolcache optimizado y CDN directo de Gradle:
 1. Dirígete a la pestaña **Actions** en tu repositorio de GitHub: `https://github.com/Abejandr0/honey/actions`.
 2. Selecciona la ejecución más reciente del flujo **"Build Honey Wear OS APK"**.
-3. En la sección **Artifacts**, descarga el archivo **`Honey-WearOS-debug-apk`**.
+3. En la sección **Artifacts**, descarga el archivo **`Honey-WearOS-v1.0-debug`**.
 4. ¡Listo! Ya tienes el archivo `.apk` para instalar en cualquier reloj inteligente o emulador.
 
 ### Opción 2: Compilación local con Gradle
