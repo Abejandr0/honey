@@ -18,7 +18,7 @@
     <string name="setup_title">Initial Setup</string>
     <string name="setup_partner_match">Pair Smartwatch</string>
     <string name="my_code_label">Your Partner Code:</string>
-    <string name="enter_partner_code">Partner's Code</string>
+    <string name="enter_partner_code">Partner\'s Code</string>
     <string name="anniversary_date_label">Anniversary Date</string>
     <string name="day">Day</string>
     <string name="month">Month</string>
@@ -57,7 +57,7 @@
     <string name="quick_messages_title">Quick Messages</string>
     <string name="msg_love">Love you</string>
     <string name="msg_on_my_way">On my way</string>
-    <string name="msg_arrived">I'm here</string>
+    <string name="msg_arrived">I\'m here</string>
     <string name="msg_thinking">Thinking of you</string>
     <string name="msg_call_me">Call me</string>
     <string name="msg_good_night">Good night</string>
