@@ -141,16 +141,22 @@ fun LocationScreen(
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
-        item {
+        if (lastUpdated != null && partnerState.isSharingLocation) item {
             Text(
-                text = if (lastUpdated != null && partnerState.isSharingLocation) {
-                    stringResource(R.string.location_updated, lastUpdated)
-                } else {
-                    stringResource(R.string.map_attribution)
-                },
+                text = stringResource(R.string.location_updated, lastUpdated),
                 color = colors.onSurface.copy(alpha = 0.62f),
                 fontSize = 8.sp,
                 textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 3.dp)
+            )
+        }
+        if (partnerState.isSharingLocation && partnerLocation != null) item {
+            Text(
+                text = stringResource(R.string.map_attribution),
+                color = colors.onSurface.copy(alpha = 0.62f),
+                fontSize = 7.sp,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
                 modifier = Modifier.padding(bottom = 3.dp)
             )
         }

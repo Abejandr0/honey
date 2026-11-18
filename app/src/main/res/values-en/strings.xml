@@ -103,7 +103,7 @@
     <string name="map_unavailable">Could not load the map</string>
     <string name="location_waiting">Waiting for your partner\'s location</string>
     <string name="location_updated">Updated %1$s</string>
-    <string name="map_attribution">Map © OpenStreetMap</string>
+    <string name="map_attribution">© OpenFreeMap · © OpenMapTiles · OpenStreetMap</string>
     <string name="location_permission_required">Allow location access to share yours</string>
     <string name="location_notification_title">Honey is sharing your location</string>
     <string name="location_notification_body">Your location is shared with your partner until you pause sharing.</string>
