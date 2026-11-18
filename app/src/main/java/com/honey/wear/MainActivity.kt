@@ -35,6 +35,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var repository: HoneyRepository
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
+    private var shouldTrackLocation = false
+    private var locationUpdatesActive = false
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -43,6 +45,8 @@ class MainActivity : ComponentActivity() {
         val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
         if (fineGranted || coarseGranted) {
             startLocationUpdates()
+        } else {
+            shouldTrackLocation = false
         }
     }
 
@@ -53,7 +57,6 @@ class MainActivity : ComponentActivity() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         setupLocationUpdates()
-        checkLocationPermissions()
 
         setContent {
             val userProfile by repository.userProfile.collectAsState()
@@ -65,6 +68,14 @@ class MainActivity : ComponentActivity() {
             val feedbackToast by repository.feedbackToast.collectAsState()
 
             var currentRoute by remember { mutableStateOf(ScreenRoute.HOME) }
+
+            LaunchedEffect(currentRoute, isSharingLocation) {
+                if (currentRoute == ScreenRoute.LOCATION && isSharingLocation) {
+                    requestLocationPermissionOrStart()
+                } else {
+                    stopLocationUpdates(clearTrackingIntent = true)
+                }
+            }
 
             // Show feedback toast when triggered
             LaunchedEffect(feedbackToast) {
@@ -136,7 +147,9 @@ class MainActivity : ComponentActivity() {
                                         distanceMeters = repository.calculateDistanceToPartnerMeters(),
                                         partnerState = partnerState,
                                         onToggleSharing = { share -> repository.toggleLocationSharing(share) },
-                                        onRefreshLocation = { startLocationUpdates() },
+                                        onRefreshLocation = {
+                                            if (isSharingLocation) requestLocationPermissionOrStart()
+                                        },
                                         onBack = { currentRoute = ScreenRoute.HOME }
                                     )
                                 }
@@ -184,11 +197,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun checkLocationPermissions() {
-        val fineLocationPermission = ContextCompat.checkSelfPermission(
-            this, Manifest.permission.ACCESS_FINE_LOCATION
-        )
-        if (fineLocationPermission == PackageManager.PERMISSION_GRANTED) {
+    private fun requestLocationPermissionOrStart() {
+        shouldTrackLocation = true
+        val finePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+        val coarsePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+        if (finePermission == PackageManager.PERMISSION_GRANTED || coarsePermission == PackageManager.PERMISSION_GRANTED) {
             startLocationUpdates()
         } else {
             locationPermissionLauncher.launch(
@@ -203,6 +216,7 @@ class MainActivity : ComponentActivity() {
     private fun setupLocationUpdates() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
+                if (!shouldTrackLocation) return
                 locationResult.lastLocation?.let { loc ->
                     repository.updateMyLocation(loc.latitude, loc.longitude)
                 }
@@ -211,11 +225,16 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun startLocationUpdates() {
+        if (!shouldTrackLocation || locationUpdatesActive) return
+
         val finePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-        if (finePermission != PackageManager.PERMISSION_GRANTED) return
+        val coarsePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+        val hasFinePermission = finePermission == PackageManager.PERMISSION_GRANTED
+        if (!hasFinePermission && coarsePermission != PackageManager.PERMISSION_GRANTED) return
 
         val locationRequest = LocationRequest.Builder(
-            Priority.PRIORITY_HIGH_ACCURACY, 5000
+            if (hasFinePermission) Priority.PRIORITY_HIGH_ACCURACY else Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+            5000
         ).setMinUpdateIntervalMillis(3000).build()
 
         try {
@@ -224,13 +243,32 @@ class MainActivity : ComponentActivity() {
                 locationCallback,
                 Looper.getMainLooper()
             )
+            locationUpdatesActive = true
         } catch (e: SecurityException) {
-            // Permission check fallback
+            locationUpdatesActive = false
         }
+    }
+
+    private fun stopLocationUpdates(clearTrackingIntent: Boolean) {
+        if (clearTrackingIntent) shouldTrackLocation = false
+        if (!locationUpdatesActive) return
+
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+        locationUpdatesActive = false
+    }
+
+    override fun onPause() {
+        stopLocationUpdates(clearTrackingIntent = false)
+        super.onPause()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (shouldTrackLocation) startLocationUpdates()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        fusedLocationClient.removeLocationUpdates(locationCallback)
+        stopLocationUpdates(clearTrackingIntent = true)
     }
 }
