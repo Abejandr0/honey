@@ -7,6 +7,12 @@
     <string name="name_screen_title">¿Cómo te llamas?</string>
     <string name="name_screen_hint">Este nombre verá tu pareja.</string>
     <string name="retry">Reintentar</string>
+    <string name="preview_me">Tú</string>
+    <string name="preview_partner">Pareja sin vincular</string>
+    <string name="preview_enter">Explorar sin vincular</string>
+    <string name="preview_banner">Vista previa · Sin pareja vinculada</string>
+    <string name="preview_not_sent">Vista previa: no se envió</string>
+    <string name="preview_location_unavailable">La ubicación estará disponible al vincular una pareja real.</string>
     <string name="name_label">Tu nombre</string>
     <string name="firebase_setup_required">Falta conectar el proyecto de Firebase</string>
     <string name="firebase_network_error">No hay conexión a Internet.</string>

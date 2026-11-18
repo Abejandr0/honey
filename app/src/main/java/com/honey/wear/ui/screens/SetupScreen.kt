@@ -39,12 +39,14 @@ import java.time.LocalDate
 
 @Composable
 fun SetupScreen(
+    showPreview: Boolean,
     pairingCode: String?,
     isGeneratingCode: Boolean,
     isPairing: Boolean,
     errorMessage: String?,
     onCreatePairingCode: () -> Unit,
-    onPairWithCode: (code: String, anniversaryDate: LocalDate?) -> Unit
+    onPairWithCode: (code: String, anniversaryDate: LocalDate?) -> Unit,
+    onPreview: () -> Unit
 ) {
     var partnerCode by remember { mutableStateOf("") }
     var anniversaryText by remember { mutableStateOf("") }
@@ -226,6 +228,16 @@ fun SetupScreen(
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
+            }
+        }
+
+        if (showPreview) item {
+            Button(
+                onClick = onPreview,
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                colors = ButtonDefaults.secondaryButtonColors()
+            ) {
+                Text(stringResource(R.string.preview_enter), fontSize = 9.sp)
             }
         }
 

@@ -51,6 +51,7 @@ fun LocationScreen(
     distanceMeters: Int?,
     darkMode: Boolean,
     languageCode: String,
+    allowSharing: Boolean,
     onToggleSharing: (Boolean) -> Unit,
     onBack: () -> Unit
 ) {
@@ -101,6 +102,11 @@ fun LocationScreen(
                 contentAlignment = Alignment.Center
             ) {
                 when {
+                    !allowSharing -> LocationEmptyState(
+                        iconDescription = stringResource(R.string.preview_partner),
+                        label = stringResource(R.string.preview_partner),
+                        icon = Icons.Default.LocationOff
+                    )
                     !partnerState.isSharingLocation -> LocationEmptyState(
                         iconDescription = stringResource(R.string.partner_not_sharing),
                         label = stringResource(R.string.partner_not_sharing),
@@ -122,7 +128,9 @@ fun LocationScreen(
         }
         item {
             Text(
-                text = if (!partnerState.isSharingLocation) {
+                text = if (!allowSharing) {
+                    stringResource(R.string.preview_partner)
+                } else if (!partnerState.isSharingLocation) {
                     stringResource(R.string.partner_not_sharing)
                 } else if (distanceMeters != null) {
                     val distance = if (distanceMeters < 1000) {
@@ -160,7 +168,16 @@ fun LocationScreen(
                 modifier = Modifier.padding(bottom = 3.dp)
             )
         }
-        item {
+        if (!allowSharing) item {
+            Text(
+                text = stringResource(R.string.preview_location_unavailable),
+                color = colors.onSurface.copy(alpha = 0.68f),
+                fontSize = 9.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 3.dp)
+            )
+        }
+        if (allowSharing) item {
             ToggleChip(
                 checked = isSharingLocation,
                 onCheckedChange = onToggleSharing,

@@ -12,6 +12,10 @@ Honey conecta dos relojes para compartir ánimo, mensajes, toques hápticos y ub
 - Ajustes persistentes en el reloj: español o inglés, modo claro u oscuro, ocho acentos de color, No molestar y vibración.
 - Interfaz Wear OS con panel de cuatro accesos, controles de ánimo que caben en pantalla e iconos vectoriales.
 
+## Vista previa en Android Studio
+
+La compilación `debug` abre el panel directamente cuando Firebase aún no está conectado. Si Firebase está conectado pero no hay pareja vinculada, **Explorar sin vincular** permite entrar desde la pantalla de vinculación. La vista previa indica que no hay pareja real: no inventa mensajes, fechas ni coordenadas, y no envía toques, mensajes ni ubicación. La compilación `release` conserva el flujo real de Firebase y vinculación.
+
 ## Conectar Firebase
 
 El código Android se compila sin credenciales, pero Honey espera la conexión a Firebase para usar datos compartidos. El plan Spark no requiere tarjeta ni Cloud Functions:

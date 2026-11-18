@@ -7,6 +7,12 @@
     <string name="name_screen_title">What is your name?</string>
     <string name="name_screen_hint">Your partner will see this name.</string>
     <string name="retry">Retry</string>
+    <string name="preview_me">You</string>
+    <string name="preview_partner">No partner linked</string>
+    <string name="preview_enter">Explore without pairing</string>
+    <string name="preview_banner">Preview · No partner linked</string>
+    <string name="preview_not_sent">Preview: not sent</string>
+    <string name="preview_location_unavailable">Location will be available after pairing with a real partner.</string>
     <string name="name_label">Your name</string>
     <string name="firebase_setup_required">Firebase project is not connected</string>
     <string name="firebase_network_error">No Internet connection.</string>

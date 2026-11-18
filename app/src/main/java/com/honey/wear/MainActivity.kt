@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.pm.ApplicationInfo
 import android.content.res.Configuration
 import android.location.Location
 import android.os.Bundle
@@ -22,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -91,6 +93,7 @@ class MainActivity : ComponentActivity() {
 
         localRepository = HoneyRepository(applicationContext)
         firebaseRepository = FirebaseHoneyRepository(applicationContext)
+        val isDebugBuild = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
 
         setContent {
             val settings by localRepository.settings.collectAsState()
@@ -115,6 +118,20 @@ class MainActivity : ComponentActivity() {
             var pairingCodeOverride by remember { mutableStateOf<String?>(null) }
             var receivedTouch by remember { mutableStateOf<TouchType?>(null) }
             var currentRoute by remember { mutableStateOf(ScreenRoute.HOME) }
+            var previewMode by rememberSaveable { mutableStateOf(isDebugBuild && !firebaseRepository.isConfigured) }
+            var previewMood by remember { mutableStateOf<MoodType?>(null) }
+
+            val activeProfile = if (previewMode) UserProfile(
+                uid = "preview",
+                username = userProfile?.username ?: context.getString(R.string.preview_me),
+                mood = previewMood
+            ) else userProfile
+            val activePartner = if (previewMode) PartnerState(
+                uid = "preview-partner",
+                name = context.getString(R.string.preview_partner),
+                mood = null,
+                isSharingLocation = false
+            ) else partnerProfile
 
             val currentUid = firebaseUser?.uid
             val sessionStartedAt = remember { System.currentTimeMillis() }
@@ -284,7 +301,7 @@ class MainActivity : ComponentActivity() {
                     contentAlignment = Alignment.Center
                 ) {
                     when {
-                        firebaseUser == null -> HoneyStatusScreen(
+                        !previewMode && firebaseUser == null -> HoneyStatusScreen(
                             message = when {
                                 !firebaseRepository.isConfigured -> stringResource(R.string.firebase_setup_required)
                                 authError != null -> authError!!
@@ -294,9 +311,9 @@ class MainActivity : ComponentActivity() {
                             onAction = if (authError != null && !authLoading) ({ authRetry++ }) else null
                         )
 
-                        profileLoading -> HoneyStatusScreen(stringResource(R.string.loading_profile))
+                        !previewMode && profileLoading -> HoneyStatusScreen(stringResource(R.string.loading_profile))
 
-                        userProfile == null -> NameScreen(
+                        !previewMode && userProfile == null -> NameScreen(
                             isLoading = profileSaving,
                             errorMessage = appError,
                             onContinue = { name ->
@@ -314,7 +331,8 @@ class MainActivity : ComponentActivity() {
                             }
                         )
 
-                        userProfile?.isPaired != true -> SetupScreen(
+                        !previewMode && userProfile?.isPaired != true -> SetupScreen(
+                            showPreview = isDebugBuild,
                             pairingCode = pairingCodeOverride,
                             isGeneratingCode = codeLoading,
                             isPairing = pairingLoading,
@@ -344,25 +362,30 @@ class MainActivity : ComponentActivity() {
                                         pairingLoading = false
                                     }
                                 }
+                            },
+                            onPreview = {
+                                previewMode = true
+                                currentRoute = ScreenRoute.HOME
                             }
                         )
 
-                        userProfile != null && partnerProfile == null && partnerLoading -> HoneyStatusScreen(
+                        !previewMode && userProfile != null && partnerProfile == null && partnerLoading -> HoneyStatusScreen(
                             stringResource(R.string.loading_partner)
                         )
 
-                        userProfile != null && partnerProfile == null -> HoneyStatusScreen(
+                        !previewMode && userProfile != null && partnerProfile == null -> HoneyStatusScreen(
                             message = appError ?: stringResource(R.string.partner_unavailable)
                         )
 
                         else -> when (currentRoute) {
                             ScreenRoute.HOME -> HomeScreen(
-                                userProfile = userProfile!!,
-                                partnerState = partnerProfile!!,
-                                myMood = userProfile!!.mood,
-                                daysTogether = userProfile!!.anniversaryDate?.let { anniversary ->
+                                userProfile = activeProfile!!,
+                                partnerState = activePartner!!,
+                                myMood = activeProfile.mood,
+                                daysTogether = activeProfile.anniversaryDate?.let { anniversary ->
                                     ChronoUnit.DAYS.between(anniversary, LocalDate.now()).coerceAtLeast(0)
                                 },
+                                isPreview = previewMode,
                                 isDndActive = settings.isDndActive,
                                 onNavigateToTouch = { currentRoute = ScreenRoute.TOUCH },
                                 onNavigateToMessages = { currentRoute = ScreenRoute.MESSAGES },
@@ -373,7 +396,10 @@ class MainActivity : ComponentActivity() {
 
                             ScreenRoute.TOUCH -> TouchScreen(
                                 onSendTouch = { type ->
-                                    scope.launch {
+                                    if (previewMode) {
+                                        localRepository.performHapticTouch(type)
+                                        Toast.makeText(context, R.string.preview_not_sent, Toast.LENGTH_SHORT).show()
+                                    } else scope.launch {
                                         try {
                                             firebaseRepository.sendTouch(type)
                                             localRepository.hapticConfirmation()
@@ -387,7 +413,9 @@ class MainActivity : ComponentActivity() {
 
                             ScreenRoute.MESSAGES -> QuickMessagesScreen(
                                 onSendMessage = { message ->
-                                    scope.launch {
+                                    if (previewMode) {
+                                        Toast.makeText(context, R.string.preview_not_sent, Toast.LENGTH_SHORT).show()
+                                    } else scope.launch {
                                         try {
                                             firebaseRepository.sendMessage(message)
                                             localRepository.hapticConfirmation()
@@ -401,23 +429,29 @@ class MainActivity : ComponentActivity() {
                             )
 
                             ScreenRoute.LOCATION -> LocationScreen(
-                                isSharingLocation = userProfile!!.isSharingLocation,
-                                partnerState = partnerProfile!!,
-                                partnerLocation = partnerLocation,
-                                distanceMeters = distanceBetween(myLocation, partnerLocation),
+                                isSharingLocation = activeProfile!!.isSharingLocation,
+                                partnerState = activePartner!!,
+                                partnerLocation = if (previewMode) null else partnerLocation,
+                                distanceMeters = if (previewMode) null else distanceBetween(myLocation, partnerLocation),
                                 darkMode = settings.isDarkMode,
                                 languageCode = settings.languageCode,
+                                allowSharing = !previewMode,
                                 onToggleSharing = { enabled ->
-                                    if (enabled) requestLocationSharing()
-                                    else disableLocationSharing()
+                                    if (!previewMode) {
+                                        if (enabled) requestLocationSharing()
+                                        else disableLocationSharing()
+                                    }
                                 },
                                 onBack = { currentRoute = ScreenRoute.HOME }
                             )
 
                             ScreenRoute.MOOD -> MoodScreen(
-                                currentMood = userProfile!!.mood,
+                                currentMood = activeProfile!!.mood,
                                 onSelectMood = { mood ->
-                                    scope.launch {
+                                    if (previewMode) {
+                                        previewMood = mood
+                                        currentRoute = ScreenRoute.HOME
+                                    } else scope.launch {
                                         try {
                                             firebaseRepository.updateMood(mood)
                                             currentRoute = ScreenRoute.HOME
@@ -434,7 +468,7 @@ class MainActivity : ComponentActivity() {
                                 onToggleDarkMode = localRepository::toggleDarkMode,
                                 onToggleDnd = { enabled ->
                                     localRepository.toggleDnd(enabled)
-                                    scope.launch {
+                                    if (!previewMode) scope.launch {
                                         runCatching { firebaseRepository.setDndActive(enabled) }
                                     }
                                 },

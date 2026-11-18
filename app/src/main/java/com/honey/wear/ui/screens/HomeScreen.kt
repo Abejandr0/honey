@@ -57,6 +57,7 @@ fun HomeScreen(
     partnerState: PartnerState,
     myMood: MoodType?,
     daysTogether: Long?,
+    isPreview: Boolean,
     isDndActive: Boolean,
     onNavigateToTouch: () -> Unit,
     onNavigateToMessages: () -> Unit,
@@ -92,18 +93,18 @@ fun HomeScreen(
                         text = stringResource(R.string.app_name),
                         color = MaterialTheme.colors.primary,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp
+                        fontSize = if (isPreview) 10.sp else 12.sp
                     )
                     Text(
                         text = if (isDndActive) stringResource(R.string.status_dnd) else userProfile.username,
                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.72f),
-                        fontSize = 9.sp,
+                        fontSize = if (isPreview) 8.sp else 9.sp,
                         maxLines = 1
                     )
                 }
                 androidx.compose.foundation.layout.Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(if (isPreview) 25.dp else 36.dp)
                         .clip(CircleShape)
                         .clickable(role = Role.Button, onClick = onNavigateToSettings)
                         .semantics { contentDescription = settingsLabel },
@@ -113,18 +114,29 @@ fun HomeScreen(
                         imageVector = Icons.Default.Settings,
                         contentDescription = null,
                         tint = MaterialTheme.colors.onSurface,
-                        modifier = Modifier.size(19.dp)
+                        modifier = Modifier.size(if (isPreview) 16.dp else 19.dp)
                     )
                 }
             }
+        }
+
+        if (isPreview) item {
+            Text(
+                text = stringResource(R.string.preview_banner),
+                color = MaterialTheme.colors.primary,
+                fontSize = 9.sp,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
         item {
             Text(
                 text = currentTime.format(DateTimeFormatter.ofPattern("HH:mm")),
                 color = MaterialTheme.colors.onBackground,
-                fontSize = 34.sp,
-                lineHeight = 38.sp,
+                fontSize = if (isPreview) 27.sp else 34.sp,
+                lineHeight = if (isPreview) 29.sp else 38.sp,
                 fontWeight = FontWeight.ExtraBold,
                 textAlign = TextAlign.Center
             )
@@ -152,7 +164,7 @@ fun HomeScreen(
             }
         }
 
-        item {
+        if (!isPreview) item {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(vertical = 2.dp)
@@ -206,12 +218,14 @@ fun HomeScreen(
                     label = stringResource(R.string.nav_touch),
                     icon = Icons.Default.Favorite,
                     modifier = Modifier.weight(1f),
+                    compact = isPreview,
                     onClick = onNavigateToTouch
                 )
                 HoneyIconTile(
                     label = stringResource(R.string.nav_messages),
                     icon = Icons.Default.ChatBubbleOutline,
                     modifier = Modifier.weight(1f),
+                    compact = isPreview,
                     onClick = onNavigateToMessages
                 )
             }
@@ -223,12 +237,14 @@ fun HomeScreen(
                     label = stringResource(R.string.nav_location),
                     icon = Icons.Default.LocationOn,
                     modifier = Modifier.weight(1f),
+                    compact = isPreview,
                     onClick = onNavigateToLocation
                 )
                 HoneyIconTile(
                     label = stringResource(R.string.nav_mood),
                     icon = Icons.Default.Mood,
                     modifier = Modifier.weight(1f),
+                    compact = isPreview,
                     onClick = onNavigateToMood
                 )
             }

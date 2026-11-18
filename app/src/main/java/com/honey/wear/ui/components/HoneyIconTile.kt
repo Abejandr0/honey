@@ -65,6 +65,7 @@ fun HoneyIconTile(
     icon: ImageVector,
     modifier: Modifier = Modifier,
     selected: Boolean = false,
+    compact: Boolean = false,
     onClick: () -> Unit
 ) {
     val shape = RoundedCornerShape(22.dp)
@@ -72,8 +73,8 @@ fun HoneyIconTile(
 
     Column(
         modifier = modifier
-            .padding(4.dp)
-            .height(76.dp)
+            .padding(if (compact) 2.dp else 4.dp)
+            .height(if (compact) 46.dp else 76.dp)
             .clip(shape)
             .background(if (selected) colors.primary.copy(alpha = 0.16f) else colors.surface)
             .then(
@@ -86,7 +87,7 @@ fun HoneyIconTile(
     ) {
         Box(
             modifier = Modifier
-                .size(34.dp)
+                .size(if (compact) 22.dp else 34.dp)
                 .clip(CircleShape)
                 .background(colors.primary.copy(alpha = 0.16f)),
             contentAlignment = Alignment.Center
@@ -95,15 +96,15 @@ fun HoneyIconTile(
                 imageVector = icon,
                 contentDescription = null,
                 tint = colors.primary,
-                modifier = Modifier.size(19.dp)
+                modifier = Modifier.size(if (compact) 14.dp else 19.dp)
             )
         }
-        Spacer(Modifier.height(5.dp))
+        Spacer(Modifier.height(if (compact) 2.dp else 5.dp))
         Text(
             text = label,
             color = colors.onSurface,
-            fontSize = 11.sp,
-            lineHeight = 12.sp,
+            fontSize = if (compact) 9.sp else 11.sp,
+            lineHeight = if (compact) 10.sp else 12.sp,
             fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
             maxLines = 2,
