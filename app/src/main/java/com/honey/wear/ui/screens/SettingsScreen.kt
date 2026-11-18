@@ -44,7 +44,6 @@ fun SettingsScreen(
     onToggleVibration: (Boolean) -> Unit,
     onSelectTheme: (HoneyThemePalette) -> Unit,
     onToggleLanguage: () -> Unit,
-    onLogout: () -> Unit,
     onBack: () -> Unit
 ) {
     ScalingLazyColumn(
@@ -193,12 +192,6 @@ fun SettingsScreen(
                     color = MaterialTheme.colors.primary,
                     fontSize = 9.sp,
                     modifier = Modifier.padding(top = 2.dp, bottom = 4.dp)
-                )
-                Chip(
-                    onClick = onLogout,
-                    label = { Text(stringResource(R.string.pref_logout), fontSize = 10.sp) },
-                    colors = ChipDefaults.secondaryChipColors(),
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
                 )
                 HoneyBackChip(stringResource(R.string.back), onBack)
             }

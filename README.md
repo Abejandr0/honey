@@ -1,11 +1,11 @@
 # Honey para Wear OS
 
-Honey conecta dos cuentas reales para compartir ánimo, mensajes, toques hápticos y ubicación. No incluye usuarios, parejas, códigos, fechas ni coordenadas precargadas.
+Honey conecta dos relojes para compartir ánimo, mensajes, toques hápticos y ubicación. No incluye usuarios, parejas, códigos, fechas ni coordenadas precargadas.
 
 ## Funciones
 
-- Registro e inicio de sesión con correo y contraseña de Firebase Authentication. El registro guarda el nombre que escribe la persona.
-- Match de dos cuentas mediante un código aleatorio de un solo uso, válido durante 24 horas. La vinculación se ejecuta en una Cloud Function y actualiza ambas cuentas en una sola transacción.
+- Identidad anónima de Firebase Authentication creada automáticamente. Solo se pide el nombre que verá la pareja.
+- Vinculación mediante un código aleatorio de un solo uso, válido durante 24 horas. Firestore crea la pareja y vincula al segundo reloj en una transacción; el reloj que compartió el código confirma el vínculo al recibirlo en tiempo real.
 - Sincronización en tiempo real de perfiles, estados de ánimo, mensajes, toques y ubicaciones con Cloud Firestore.
 - Mapa real con MapLibre y datos de OpenStreetMap a través de OpenFreeMap. La aplicación muestra la atribución del mapa.
 - Compartición de ubicación voluntaria con un servicio de primer plano de Android y una notificación permanente. El usuario puede detenerla desde Honey.
@@ -14,23 +14,24 @@ Honey conecta dos cuentas reales para compartir ánimo, mensajes, toques háptic
 
 ## Conectar Firebase
 
-El código Android se compila sin credenciales, pero Honey bloquea el acceso hasta conectar Firebase. Para usar cuentas y datos compartidos:
+El código Android se compila sin credenciales, pero Honey espera la conexión a Firebase para usar datos compartidos. El plan Spark no requiere tarjeta ni Cloud Functions:
 
-1. Crea un proyecto en Firebase y activa **Authentication → Email/Password**.
+1. Crea un proyecto en Firebase con el plan **Spark** y activa **Authentication → Sign-in method → Anonymous**.
 2. Crea la base **Cloud Firestore** en modo producción.
 3. Registra las aplicaciones Android `com.honey.wear` y `com.honey.wear.debug`. Descarga el archivo `google-services.json` y guárdalo en `app/` (o configura archivos por variante en `app/src/release/` y `app/src/debug/`).
-4. Instala Node.js 22 y Firebase CLI, inicia sesión y selecciona el proyecto:
+4. Instala Firebase CLI, inicia sesión y selecciona el proyecto. Publica las reglas de Firestore:
 
    ```powershell
-   npm install --prefix functions
    firebase login
    firebase use --add
-   firebase deploy --only firestore:rules,functions
+   firebase deploy --only firestore:rules
    ```
 
 5. Compila y ejecuta `app` en Android Studio o genera el APK con `.\gradlew.bat assembleDebug`.
 
-Las Cloud Functions requieren que el proyecto Firebase tenga facturación habilitada (plan Blaze). Firestore tiene cuotas gratuitas; consulta el panel de uso antes de distribuir la app. No despliegues reglas abiertas: `firestore.rules` limita el acceso a cuentas y miembros de cada pareja.
+El plan Spark tiene cuotas de Firestore. Consulta el panel de uso antes de distribuir la app. `firestore.rules` limita los perfiles y los datos compartidos a los miembros de cada pareja; publica estas reglas antes de probar el match.
+
+La identidad anónima permanece en el reloj mientras se conserven los datos de la aplicación. Si se desinstala Honey o se borran sus datos, no hay forma de recuperar esa identidad ni la pareja vinculada. Antes de distribuir la app, conviene añadir un método de recuperación de cuenta.
 
 ## Privacidad de ubicación
 
@@ -41,6 +42,5 @@ El mapa se centra en la ubicación más reciente que haya compartido la otra cue
 ## Estructura
 
 - `app/`: aplicación Wear OS, cliente Firebase, interfaz y seguimiento de ubicación.
-- `functions/`: generación de códigos y match atómico en Cloud Functions.
-- `firestore.rules`: reglas para proteger perfiles, mensajes, ubicaciones y datos de pareja.
+- `firestore.rules`: permisos para la creación de códigos y el match sin Cloud Functions.
 - `.firebaserc.example`: plantilla local de selección de proyecto. No contiene un proyecto real.

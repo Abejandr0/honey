@@ -3,22 +3,12 @@
     <string name="app_name">Honey</string>
     <string name="tagline">Always close</string>
 
-    <!-- Auth -->
-    <string name="login_title">Sign In</string>
-    <string name="register_title">Register</string>
-    <string name="auth_required">Your account protects your data</string>
+    <!-- Start without an account -->
+    <string name="name_screen_title">What is your name?</string>
+    <string name="name_screen_hint">Your partner will see this name.</string>
+    <string name="retry">Retry</string>
     <string name="name_label">Your name</string>
-    <string name="email_label">Email address</string>
-    <string name="password_label">Password</string>
-    <string name="btn_login">Log In</string>
-    <string name="btn_register">Create account</string>
-    <string name="need_account">New here? Create an account</string>
-    <string name="have_account">I already have an account</string>
     <string name="firebase_setup_required">Firebase project is not connected</string>
-    <string name="firebase_auth_error">Could not sign in. Check your email and password.</string>
-    <string name="firebase_invalid_email">Enter a valid email address.</string>
-    <string name="firebase_email_in_use">An account already uses that email.</string>
-    <string name="firebase_weak_password">Password must have at least 6 characters.</string>
     <string name="firebase_network_error">No Internet connection.</string>
     <string name="firebase_profile_error">Could not load your profile.</string>
     <string name="firebase_pairing_error">Could not link the accounts.</string>
@@ -29,7 +19,6 @@
     <string name="partner_unavailable">Could not load the linked profile.</string>
     <string name="message_received_from">Message from %1$s</string>
     <string name="loading">Connecting…</string>
-    <string name="auth_error">Could not validate this account</string>
 
     <!-- Initial Setup & Match -->
     <string name="setup_title">Initial Setup</string>
@@ -49,7 +38,6 @@
     <string name="copy_code">Copy code</string>
     <string name="code_copied">Code copied</string>
     <string name="refresh_pairing_code">Create a new code</string>
-    <string name="sign_out">Sign out</string>
     <string name="anniversary_date_label">Anniversary Date</string>
     <string name="day">Day</string>
     <string name="month">Month</string>
@@ -141,7 +129,6 @@
     <string name="pref_dnd_desc">Silence touches and save summary</string>
     <string name="pref_vibration">Haptic Vibration</string>
     <string name="pref_vibration_desc">Enable watch vibration motor</string>
-    <string name="pref_logout">Sign Out / Unpair</string>
     <string name="dnd_summary_title">While you were resting:</string>
     <string name="dnd_summary_format">%1$d touches and %2$d messages received</string>
 

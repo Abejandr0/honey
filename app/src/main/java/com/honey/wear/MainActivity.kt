@@ -32,10 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.firebase.auth.FirebaseAuth.AuthStateListener
-import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.FirebaseNetworkException
-import com.google.firebase.functions.FirebaseFunctionsException
 import com.google.firebase.firestore.ListenerRegistration
 import com.honey.wear.data.FirebaseHoneyRepository
 import com.honey.wear.data.HoneyMessage
@@ -108,6 +106,8 @@ class MainActivity : ComponentActivity() {
             var profileLoading by remember { mutableStateOf(false) }
             var partnerLoading by remember { mutableStateOf(false) }
             var authLoading by remember { mutableStateOf(false) }
+            var profileSaving by remember { mutableStateOf(false) }
+            var authRetry by remember { mutableStateOf(0) }
             var pairingLoading by remember { mutableStateOf(false) }
             var codeLoading by remember { mutableStateOf(false) }
             var authError by remember { mutableStateOf<String?>(null) }
@@ -135,6 +135,20 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 onDispose { firebaseRepository.removeAuthStateListener(listener) }
+            }
+
+            LaunchedEffect(currentUid, authRetry) {
+                if (firebaseRepository.isConfigured && currentUid == null) {
+                    authLoading = true
+                    authError = null
+                    try {
+                        firebaseRepository.signInAnonymously()
+                    } catch (error: Exception) {
+                        authError = localizedError(error)
+                    } finally {
+                        authLoading = false
+                    }
+                }
             }
 
             DisposableEffect(currentUid) {
@@ -206,6 +220,26 @@ class MainActivity : ComponentActivity() {
                 onDispose { registrations.forEach(ListenerRegistration::remove) }
             }
 
+            DisposableEffect(userProfile?.pairingCode, userProfile?.coupleId) {
+                val code = userProfile?.pairingCode
+                val registration = if (!code.isNullOrBlank() && userProfile?.coupleId == null) {
+                    firebaseRepository.observePendingPair(
+                        code = code,
+                        onPaired = {
+                            scope.launch {
+                                try {
+                                    firebaseRepository.finishPendingPair(code)
+                                } catch (error: Exception) {
+                                    appError = localizedError(error, pairing = true)
+                                }
+                            }
+                        },
+                        onError = { appError = localizedError(it, pairing = true) }
+                    )
+                } else null
+                onDispose { registration?.remove() }
+            }
+
             LaunchedEffect(messages, currentUid, settings.isDndActive) {
                 val uid = currentUid ?: return@LaunchedEffect
                 messages.forEach { message ->
@@ -250,52 +284,34 @@ class MainActivity : ComponentActivity() {
                     contentAlignment = Alignment.Center
                 ) {
                     when {
-                        firebaseUser == null -> AuthScreen(
-                            isFirebaseConfigured = firebaseRepository.isConfigured,
-                            isLoading = authLoading,
-                            errorMessage = authError,
-                            onLogin = { email, password ->
-                                authError = null
-                                if (email.isBlank() || password.isBlank()) {
-                                    authError = getString(R.string.firebase_auth_error)
-                                } else {
-                                    scope.launch {
-                                        authLoading = true
-                                        try {
-                                            firebaseRepository.signIn(email, password)
-                                        } catch (error: Exception) {
-                                            authError = localizedError(error)
-                                        } finally {
-                                            authLoading = false
-                                        }
-                                    }
-                                }
+                        firebaseUser == null -> HoneyStatusScreen(
+                            message = when {
+                                !firebaseRepository.isConfigured -> stringResource(R.string.firebase_setup_required)
+                                authError != null -> authError!!
+                                else -> stringResource(R.string.loading)
                             },
-                            onRegister = { name, email, password ->
-                                authError = null
-                                if (password.length < 6) {
-                                    authError = getString(R.string.firebase_weak_password)
-                                } else {
-                                    scope.launch {
-                                        authLoading = true
-                                        try {
-                                            firebaseRepository.register(name, email, password)
-                                        } catch (error: Exception) {
-                                            authError = localizedError(error)
-                                        } finally {
-                                            authLoading = false
-                                        }
-                                    }
-                                }
-                            }
+                            actionLabel = if (authError != null && !authLoading) stringResource(R.string.retry) else null,
+                            onAction = if (authError != null && !authLoading) ({ authRetry++ }) else null
                         )
 
                         profileLoading -> HoneyStatusScreen(stringResource(R.string.loading_profile))
 
-                        userProfile == null -> HoneyStatusScreen(
-                            message = appError ?: stringResource(R.string.profile_unavailable),
-                            actionLabel = stringResource(R.string.sign_out),
-                            onAction = { firebaseRepository.signOut() }
+                        userProfile == null -> NameScreen(
+                            isLoading = profileSaving,
+                            errorMessage = appError,
+                            onContinue = { name ->
+                                appError = null
+                                scope.launch {
+                                    profileSaving = true
+                                    try {
+                                        firebaseRepository.createProfile(name)
+                                    } catch (error: Exception) {
+                                        appError = localizedError(error)
+                                    } finally {
+                                        profileSaving = false
+                                    }
+                                }
+                            }
                         )
 
                         userProfile?.isPaired != true -> SetupScreen(
@@ -328,8 +344,7 @@ class MainActivity : ComponentActivity() {
                                         pairingLoading = false
                                     }
                                 }
-                            },
-                            onLogout = { signOut() }
+                            }
                         )
 
                         userProfile != null && partnerProfile == null && partnerLoading -> HoneyStatusScreen(
@@ -337,9 +352,7 @@ class MainActivity : ComponentActivity() {
                         )
 
                         userProfile != null && partnerProfile == null -> HoneyStatusScreen(
-                            message = appError ?: stringResource(R.string.partner_unavailable),
-                            actionLabel = stringResource(R.string.sign_out),
-                            onAction = { signOut() }
+                            message = appError ?: stringResource(R.string.partner_unavailable)
                         )
 
                         else -> when (currentRoute) {
@@ -431,7 +444,6 @@ class MainActivity : ComponentActivity() {
                                     localRepository.updateLanguage(if (settings.languageCode == "es") "en" else "es")
                                     recreate()
                                 },
-                                onLogout = { signOut() },
                                 onBack = { currentRoute = ScreenRoute.HOME }
                             )
                         }
@@ -498,14 +510,6 @@ class MainActivity : ComponentActivity() {
         stopService(Intent(this, LocationShareService::class.java))
     }
 
-    private fun signOut() {
-        stopLocationShareService()
-        lifecycleScope.launch {
-            runCatching { firebaseRepository.setLocationSharing(false) }
-            firebaseRepository.signOut()
-        }
-    }
-
     private fun distanceBetween(first: SharedLocation?, second: SharedLocation?): Int? {
         if (first == null || second == null) return null
         val result = FloatArray(1)
@@ -521,15 +525,6 @@ class MainActivity : ComponentActivity() {
 
     private fun localizedError(error: Throwable, pairing: Boolean = false): String = when (error) {
         is FirebaseNetworkException -> getString(R.string.firebase_network_error)
-        is FirebaseFunctionsException -> getString(
-            if (pairing) R.string.firebase_pairing_error else R.string.firebase_generic_error
-        )
-        is FirebaseAuthException -> when (error.errorCode) {
-            "ERROR_EMAIL_ALREADY_IN_USE" -> getString(R.string.firebase_email_in_use)
-            "ERROR_WEAK_PASSWORD" -> getString(R.string.firebase_weak_password)
-            "ERROR_INVALID_EMAIL" -> getString(R.string.firebase_invalid_email)
-            else -> getString(R.string.firebase_auth_error)
-        }
         else -> getString(if (pairing) R.string.firebase_pairing_error else R.string.firebase_generic_error)
     }
 }

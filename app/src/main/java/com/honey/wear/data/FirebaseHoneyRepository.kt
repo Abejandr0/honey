@@ -10,11 +10,13 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
-import com.google.firebase.functions.FirebaseFunctions
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.tasks.await
+import java.security.SecureRandom
 import java.time.LocalDate
+import java.util.Date
 
-/** Firebase-backed account and couple data. It never supplies sample users or coordinates. */
+/** Firebase-backed identity and couple data. It never supplies sample users or coordinates. */
 class FirebaseHoneyRepository(context: Context) {
     private val app: FirebaseApp? = runCatching {
         FirebaseApp.getApps(context).firstOrNull() ?: FirebaseApp.initializeApp(context)
@@ -24,9 +26,6 @@ class FirebaseHoneyRepository(context: Context) {
 
     private val auth: FirebaseAuth? = app?.let(FirebaseAuth::getInstance)
     private val firestore: FirebaseFirestore? = app?.let(FirebaseFirestore::getInstance)
-    private val functions: FirebaseFunctions? = app?.let {
-        FirebaseFunctions.getInstance(it, FUNCTIONS_REGION)
-    }
 
     val currentUser: FirebaseUser? get() = auth?.currentUser
 
@@ -41,13 +40,17 @@ class FirebaseHoneyRepository(context: Context) {
         if (listener != null) auth?.removeAuthStateListener(listener)
     }
 
-    suspend fun register(name: String, email: String, password: String) {
-        val firebaseAuth = requireAuth()
-        val user = firebaseAuth.createUserWithEmailAndPassword(email.trim(), password).await().user
-            ?: error("Firebase did not return a user after registration")
+    suspend fun signInAnonymously() {
+        if (currentUser == null) requireAuth().signInAnonymously().await()
+    }
+
+    suspend fun createProfile(name: String) {
+        val user = requireAuth().currentUser ?: error("No active Firebase identity")
+        val username = name.trim()
+        require(username.isNotEmpty() && username.length <= 40)
         val profile = mapOf(
             "uid" to user.uid,
-            "username" to name.trim(),
+            "username" to username,
             "pairingCode" to null,
             "partnerId" to null,
             "coupleId" to null,
@@ -57,21 +60,7 @@ class FirebaseHoneyRepository(context: Context) {
             "dndActive" to false,
             "createdAt" to FieldValue.serverTimestamp()
         )
-        try {
-            requireFirestore().collection(USERS).document(user.uid).set(profile).await()
-        } catch (error: Exception) {
-            runCatching { user.delete().await() }
-            firebaseAuth.signOut()
-            throw error
-        }
-    }
-
-    suspend fun signIn(email: String, password: String) {
-        requireAuth().signInWithEmailAndPassword(email.trim(), password).await()
-    }
-
-    fun signOut() {
-        auth?.signOut()
+        requireFirestore().collection(USERS).document(user.uid).set(profile).await()
     }
 
     fun observeProfile(
@@ -128,24 +117,100 @@ class FirebaseHoneyRepository(context: Context) {
             else onMessages(snapshot?.documents.orEmpty().mapNotNull { it.toHoneyMessage() })
         }
 
+    fun observePendingPair(
+        code: String,
+        onPaired: () -> Unit,
+        onError: (Exception) -> Unit
+    ): ListenerRegistration = requireFirestore()
+        .collection(COUPLES)
+        .document(code)
+        .addSnapshotListener { snapshot, error ->
+            if (error != null) onError(error)
+            else if (snapshot?.exists() == true) onPaired()
+        }
+
     suspend fun createPairingCode(): String {
-        val response = requireFunctions()
-            .getHttpsCallable("createPairingCode")
-            .call()
-            .await()
-            .data as? Map<*, *> ?: error("Pairing service returned an invalid response")
-        return response["code"] as? String ?: error("Pairing service did not return a code")
+        val db = requireFirestore()
+        val uid = requireUserId()
+        val userRef = db.collection(USERS).document(uid)
+        repeat(5) {
+            val code = newPairingCode()
+            val codeRef = db.collection(PAIRING_CODES).document(code)
+            val created = db.runTransaction { transaction ->
+                val user = transaction.get(userRef)
+                val existingCode = transaction.get(codeRef)
+                val previousCode = user.getString("pairingCode")
+                val previousPair = previousCode?.let { old ->
+                    transaction.get(db.collection(COUPLES).document(old))
+                }
+                check(user.exists() && user.getString("coupleId") == null) { "Profile is unavailable or already paired" }
+                check(previousPair?.exists() != true) { "Pairing is already in progress" }
+                if (existingCode.exists()) false
+                else {
+                    previousCode?.let { oldCode ->
+                        transaction.delete(db.collection(PAIRING_CODES).document(oldCode))
+                    }
+                    transaction.set(codeRef, mapOf(
+                        "ownerUid" to uid,
+                        "createdAt" to FieldValue.serverTimestamp(),
+                        "expiresAt" to Timestamp(Date(System.currentTimeMillis() + CODE_LIFETIME_MS))
+                    ))
+                    transaction.update(userRef, "pairingCode", code)
+                    true
+                }
+            }.await()
+            if (created) return code
+        }
+        error("Could not create a unique pairing code")
     }
 
     suspend fun pairWithCode(code: String, anniversaryDate: LocalDate?) {
-        val data = buildMap<String, Any> {
-            put("code", code.trim().uppercase())
-            anniversaryDate?.let { put("anniversaryDate", it.toString()) }
-        }
-        requireFunctions()
-            .getHttpsCallable("pairWithCode")
-            .call(data)
-            .await()
+        val normalized = code.trim().uppercase().filter(Char::isLetterOrDigit)
+        require(normalized.matches(Regex("HNY[A-HJ-NP-Z2-9]{10}"))) { "Invalid pairing code" }
+        val formattedCode = "HNY-${normalized.drop(3)}"
+        val db = requireFirestore()
+        val uid = requireUserId()
+        val codeRef = db.collection(PAIRING_CODES).document(formattedCode)
+        val coupleRef = db.collection(COUPLES).document(formattedCode)
+        val userRef = db.collection(USERS).document(uid)
+        db.runTransaction { transaction ->
+            val invitation = transaction.get(codeRef)
+            val couple = transaction.get(coupleRef)
+            val user = transaction.get(userRef)
+            val ownerUid = invitation.getString("ownerUid")
+            check(invitation.exists() && ownerUid != null && ownerUid != uid) { "Code is unavailable" }
+            check(invitation.getTimestamp("expiresAt")?.toDate()?.after(Date()) == true) { "Code has expired" }
+            check(!couple.exists() && user.exists() && user.getString("coupleId") == null) { "Already paired" }
+            transaction.set(coupleRef, mapOf(
+                "memberIds" to listOf(ownerUid, uid),
+                "createdAt" to FieldValue.serverTimestamp(),
+                "anniversaryDate" to anniversaryDate?.toString()
+            ))
+            transaction.update(userRef, mapOf(
+                "coupleId" to formattedCode,
+                "partnerId" to ownerUid,
+                "pairingCode" to null,
+                "anniversaryDate" to anniversaryDate?.toString()
+            ))
+            user.getString("pairingCode")?.let { ownCode ->
+                transaction.delete(db.collection(PAIRING_CODES).document(ownCode))
+            }
+        }.await()
+    }
+
+    suspend fun finishPendingPair(code: String) {
+        val db = requireFirestore()
+        val uid = requireUserId()
+        val couple = db.collection(COUPLES).document(code).get().await()
+        val members = couple.get("memberIds") as? List<*> ?: return
+        if (uid !in members || members.size != 2) return
+        val partnerId = members.firstOrNull { it != uid } as? String ?: return
+        db.collection(USERS).document(uid).update(mapOf(
+            "coupleId" to code,
+            "partnerId" to partnerId,
+            "pairingCode" to null,
+            "anniversaryDate" to couple.getString("anniversaryDate")
+        )).await()
     }
 
     suspend fun updateMood(mood: MoodType) {
@@ -231,8 +296,12 @@ class FirebaseHoneyRepository(context: Context) {
 
     private fun requireAuth(): FirebaseAuth = auth ?: error("Firebase Authentication is not configured")
     private fun requireFirestore(): FirebaseFirestore = firestore ?: error("Cloud Firestore is not configured")
-    private fun requireFunctions(): FirebaseFunctions = functions ?: error("Firebase Functions is not configured")
-    private fun requireUserId(): String = currentUser?.uid ?: error("Sign in before using Honey")
+    private fun requireUserId(): String = currentUser?.uid ?: error("Firebase identity is unavailable")
+
+    private fun newPairingCode(): String {
+        val random = SecureRandom()
+        return "HNY-" + (1..10).map { CODE_ALPHABET[random.nextInt(CODE_ALPHABET.length)] }.joinToString("")
+    }
 
     private fun DocumentSnapshot.toUserProfile(): UserProfile? {
         if (!exists()) return null
@@ -291,7 +360,9 @@ class FirebaseHoneyRepository(context: Context) {
         runCatching { enumValueOf<T>(value) }.getOrNull()
 
     private companion object {
-        const val FUNCTIONS_REGION = "us-central1"
+        const val PAIRING_CODES = "pairingCodes"
+        const val CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        const val CODE_LIFETIME_MS = 24 * 60 * 60 * 1000L
         const val USERS = "users"
         const val COUPLES = "couples"
         const val LOCATIONS = "locations"

@@ -90,11 +90,10 @@ dependencies {
     // Wear OS standalone support
     implementation("androidx.wear:wear:1.3.0")
 
-    // Firebase accounts, live couple data and secure pairing calls
+    // Firebase identity and live couple data
     implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-functions")
 
     // Interactive real street map (OpenStreetMap data via OpenFreeMap)
     implementation("org.maplibre.gl:android-sdk:11.8.0")

@@ -3,22 +3,12 @@
     <string name="app_name">Honey</string>
     <string name="tagline">Siempre cerca</string>
 
-    <!-- Auth -->
-    <string name="login_title">Iniciar Sesión</string>
-    <string name="register_title">Registrarse</string>
-    <string name="auth_required">Tu cuenta protege tus datos</string>
+    <!-- Inicio sin cuenta -->
+    <string name="name_screen_title">¿Cómo te llamas?</string>
+    <string name="name_screen_hint">Este nombre verá tu pareja.</string>
+    <string name="retry">Reintentar</string>
     <string name="name_label">Tu nombre</string>
-    <string name="email_label">Correo electrónico</string>
-    <string name="password_label">Contraseña</string>
-    <string name="btn_login">Entrar</string>
-    <string name="btn_register">Crear cuenta</string>
-    <string name="need_account">¿Aún no tienes cuenta? Regístrate</string>
-    <string name="have_account">Ya tengo una cuenta</string>
     <string name="firebase_setup_required">Falta conectar el proyecto de Firebase</string>
-    <string name="firebase_auth_error">No se pudo iniciar sesión. Revisa el correo y la contraseña.</string>
-    <string name="firebase_invalid_email">Escribe un correo electrónico válido.</string>
-    <string name="firebase_email_in_use">Ese correo ya tiene una cuenta.</string>
-    <string name="firebase_weak_password">La contraseña debe tener al menos 6 caracteres.</string>
     <string name="firebase_network_error">No hay conexión a Internet.</string>
     <string name="firebase_profile_error">No se pudo cargar el perfil.</string>
     <string name="firebase_pairing_error">No se pudo completar la vinculación.</string>
@@ -29,7 +19,6 @@
     <string name="partner_unavailable">No se pudo cargar el perfil vinculado.</string>
     <string name="message_received_from">Mensaje de %1$s</string>
     <string name="loading">Conectando…</string>
-    <string name="auth_error">No se pudo validar la cuenta</string>
 
     <!-- Initial Setup & Match -->
     <string name="setup_title">Configuración Inicial</string>
@@ -49,7 +38,6 @@
     <string name="copy_code">Copiar código</string>
     <string name="code_copied">Código copiado</string>
     <string name="refresh_pairing_code">Generar otro código</string>
-    <string name="sign_out">Cerrar sesión</string>
     <string name="anniversary_date_label">Fecha de Inicio de Noviazgo</string>
     <string name="day">Día</string>
     <string name="month">Mes</string>
@@ -141,7 +129,6 @@
     <string name="pref_dnd_desc">Silencia toques y guarda resumen</string>
     <string name="pref_vibration">Vibración háptica</string>
     <string name="pref_vibration_desc">Activar motor de reloj</string>
-    <string name="pref_logout">Cerrar Sesión / Desvincular</string>
     <string name="dnd_summary_title">Mientras descansabas:</string>
     <string name="dnd_summary_format">%1$d toques y %2$d mensajes recibidos</string>
 

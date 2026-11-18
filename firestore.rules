@@ -6,11 +6,71 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function userPath(userId) {
+      return /databases/$(database)/documents/users/$(userId);
+    }
+
+    function codePath(code) {
+      return /databases/$(database)/documents/pairingCodes/$(code);
+    }
+
+    function couplePath(coupleId) {
+      return /databases/$(database)/documents/couples/$(coupleId);
+    }
+
     function isCoupleMember(coupleId) {
       return signedIn()
         && coupleId is string
-        && exists(/databases/$(database)/documents/couples/$(coupleId))
-        && get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.hasAny([request.auth.uid]);
+        && exists(couplePath(coupleId))
+        && get(couplePath(coupleId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+
+    function canReadPartner(userId) {
+      let ownCoupleId = get(userPath(request.auth.uid)).data.coupleId;
+      return ownCoupleId is string
+        && exists(couplePath(ownCoupleId))
+        && get(couplePath(ownCoupleId)).data.memberIds.hasAll([request.auth.uid, userId]);
+    }
+
+    function profileSettingsUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'username', 'mood', 'moodUpdatedAt', 'locationSharingEnabled', 'dndActive'
+        ])
+        && request.resource.data.username is string
+        && request.resource.data.username.size() > 0
+        && request.resource.data.username.size() <= 40
+        && request.resource.data.locationSharingEnabled is bool
+        && request.resource.data.dndActive is bool
+        && (request.resource.data.mood == null
+          || request.resource.data.mood in ['HAPPY', 'IN_LOVE', 'TIRED', 'CUDDLE', 'STRESSED', 'PLAYFUL']);
+    }
+
+    function profileCodeUpdate(userId) {
+      let code = request.resource.data.pairingCode;
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pairingCode'])
+        && resource.data.coupleId == null
+        && code is string
+        && code.matches('^HNY-[A-HJ-NP-Z2-9]{10}$')
+        && existsAfter(codePath(code))
+        && getAfter(codePath(code)).data.ownerUid == userId;
+    }
+
+    function profileMatchUpdate(userId) {
+      let coupleId = request.resource.data.coupleId;
+      let partnerId = request.resource.data.partnerId;
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'coupleId', 'partnerId', 'pairingCode', 'anniversaryDate'
+        ])
+        && resource.data.coupleId == null
+        && resource.data.partnerId == null
+        && coupleId is string
+        && partnerId is string
+        && partnerId != userId
+        && request.resource.data.pairingCode == null
+        && existsAfter(couplePath(coupleId))
+        && getAfter(couplePath(coupleId)).data.memberIds.size() == 2
+        && getAfter(couplePath(coupleId)).data.memberIds.hasAll([userId, partnerId])
+        && request.resource.data.anniversaryDate == getAfter(couplePath(coupleId)).data.anniversaryDate;
     }
 
     match /users/{userId} {
@@ -38,33 +98,57 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time;
 
       allow get: if signedIn()
-        && (request.auth.uid == userId
-          || (resource.data.coupleId is string && isCoupleMember(resource.data.coupleId)));
+        && (request.auth.uid == userId || canReadPartner(userId));
       allow list: if false;
 
       allow update: if signedIn()
         && request.auth.uid == userId
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'username', 'mood', 'moodUpdatedAt', 'locationSharingEnabled', 'dndActive'
-        ])
-        && request.resource.data.username is string
-        && request.resource.data.username.size() > 0
-        && request.resource.data.username.size() <= 40
-        && request.resource.data.locationSharingEnabled is bool
-        && request.resource.data.dndActive is bool
-        && (request.resource.data.mood == null
-          || request.resource.data.mood in ['HAPPY', 'IN_LOVE', 'TIRED', 'CUDDLE', 'STRESSED', 'PLAYFUL']);
-
+        && (profileSettingsUpdate() || profileCodeUpdate(userId) || profileMatchUpdate(userId));
       allow delete: if false;
     }
 
     match /pairingCodes/{code} {
-      allow read, write: if false;
+      allow get: if signedIn();
+      allow list, update: if false;
+      allow create: if signedIn()
+        && code.matches('^HNY-[A-HJ-NP-Z2-9]{10}$')
+        && request.resource.data.keys().hasAll(['ownerUid', 'createdAt', 'expiresAt'])
+        && request.resource.data.keys().hasOnly(['ownerUid', 'createdAt', 'expiresAt'])
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time
+        && request.resource.data.expiresAt <= request.time + duration.value(25, 'h')
+        && getAfter(userPath(request.auth.uid)).data.pairingCode == code
+        && getAfter(userPath(request.auth.uid)).data.coupleId == null;
+      allow delete: if signedIn()
+        && resource.data.ownerUid == request.auth.uid
+        && getAfter(userPath(request.auth.uid)).data.pairingCode != code;
     }
 
     match /couples/{coupleId} {
-      allow get: if isCoupleMember(coupleId);
-      allow list, create, update, delete: if false;
+      allow get: if signedIn()
+        && ((resource != null && resource.data.memberIds.hasAny([request.auth.uid]))
+          || (exists(codePath(coupleId))
+            && (get(codePath(coupleId)).data.ownerUid == request.auth.uid
+              || (resource == null && get(codePath(coupleId)).data.expiresAt > request.time))));
+      allow list, update, delete: if false;
+      allow create: if signedIn()
+        && exists(codePath(coupleId))
+        && get(codePath(coupleId)).data.expiresAt > request.time
+        && get(codePath(coupleId)).data.ownerUid != request.auth.uid
+        && get(userPath(get(codePath(coupleId)).data.ownerUid)).data.pairingCode == coupleId
+        && get(userPath(get(codePath(coupleId)).data.ownerUid)).data.coupleId == null
+        && get(userPath(request.auth.uid)).data.coupleId == null
+        && request.resource.data.keys().hasAll(['memberIds', 'createdAt', 'anniversaryDate'])
+        && request.resource.data.keys().hasOnly(['memberIds', 'createdAt', 'anniversaryDate'])
+        && request.resource.data.memberIds == [get(codePath(coupleId)).data.ownerUid, request.auth.uid]
+        && request.resource.data.createdAt == request.time
+        && (request.resource.data.anniversaryDate == null
+          || (request.resource.data.anniversaryDate is string
+            && request.resource.data.anniversaryDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
+        && getAfter(userPath(request.auth.uid)).data.coupleId == coupleId
+        && getAfter(userPath(request.auth.uid)).data.partnerId == get(codePath(coupleId)).data.ownerUid;
 
       match /locations/{userId} {
         allow get: if isCoupleMember(coupleId)
@@ -78,7 +162,7 @@ service cloud.firestore {
           ])
           && request.resource.data.uid == userId
           && request.resource.data.sharing == true
-          && get(/databases/$(database)/documents/users/$(userId)).data.locationSharingEnabled == true
+          && get(userPath(userId)).data.locationSharingEnabled == true
           && request.resource.data.latitude is number
           && request.resource.data.latitude >= -90
           && request.resource.data.latitude <= 90
@@ -98,7 +182,7 @@ service cloud.firestore {
           ])
           && request.resource.data.senderUid == request.auth.uid
           && request.resource.data.recipientUid != request.auth.uid
-          && get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.hasAny([
+          && get(couplePath(coupleId)).data.memberIds.hasAny([
             request.resource.data.recipientUid
           ])
           && request.resource.data.createdAt == request.time

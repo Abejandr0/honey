@@ -44,8 +44,7 @@ fun SetupScreen(
     isPairing: Boolean,
     errorMessage: String?,
     onCreatePairingCode: () -> Unit,
-    onPairWithCode: (code: String, anniversaryDate: LocalDate?) -> Unit,
-    onLogout: () -> Unit
+    onPairWithCode: (code: String, anniversaryDate: LocalDate?) -> Unit
 ) {
     var partnerCode by remember { mutableStateOf("") }
     var anniversaryText by remember { mutableStateOf("") }
@@ -181,7 +180,7 @@ fun SetupScreen(
         item {
             HoneyTextField(
                 value = partnerCode,
-                onValueChange = { partnerCode = it.uppercase().filter(Char::isLetterOrDigit).take(12) },
+                onValueChange = { partnerCode = it.uppercase().filter(Char::isLetterOrDigit).take(13) },
                 label = stringResource(R.string.pairing_code_label),
                 keyboardType = KeyboardType.Ascii,
                 imeAction = ImeAction.Next
@@ -217,7 +216,7 @@ fun SetupScreen(
                     }
                     onPairWithCode(partnerCode.trim(), date)
                 },
-                enabled = !isPairing && partnerCode.length >= 6 &&
+                enabled = !isPairing && partnerCode.length == 13 &&
                     (anniversaryText.isBlank() || runCatching { LocalDate.parse(anniversaryText) }.isSuccess),
                 modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
                 colors = ButtonDefaults.primaryButtonColors()
@@ -230,14 +229,5 @@ fun SetupScreen(
             }
         }
 
-        item {
-            Button(
-                onClick = onLogout,
-                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
-                colors = ButtonDefaults.secondaryButtonColors()
-            ) {
-                Text(stringResource(R.string.sign_out), fontSize = 9.sp)
-            }
-        }
     }
 }
