@@ -1,0 +1,117 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isCoupleMember(coupleId) {
+      return signedIn()
+        && coupleId is string
+        && exists(/databases/$(database)/documents/couples/$(coupleId))
+        && get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.hasAny([request.auth.uid]);
+    }
+
+    match /users/{userId} {
+      allow create: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasAll([
+          'uid', 'username', 'pairingCode', 'partnerId', 'coupleId',
+          'anniversaryDate', 'mood', 'locationSharingEnabled', 'dndActive', 'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'uid', 'username', 'pairingCode', 'partnerId', 'coupleId',
+          'anniversaryDate', 'mood', 'locationSharingEnabled', 'dndActive', 'createdAt'
+        ])
+        && request.resource.data.uid == userId
+        && request.resource.data.username is string
+        && request.resource.data.username.size() > 0
+        && request.resource.data.username.size() <= 40
+        && request.resource.data.pairingCode == null
+        && request.resource.data.partnerId == null
+        && request.resource.data.coupleId == null
+        && request.resource.data.anniversaryDate == null
+        && request.resource.data.mood == null
+        && request.resource.data.locationSharingEnabled == false
+        && request.resource.data.dndActive == false
+        && request.resource.data.createdAt == request.time;
+
+      allow get: if signedIn()
+        && (request.auth.uid == userId
+          || (resource.data.coupleId is string && isCoupleMember(resource.data.coupleId)));
+      allow list: if false;
+
+      allow update: if signedIn()
+        && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'username', 'mood', 'moodUpdatedAt', 'locationSharingEnabled', 'dndActive'
+        ])
+        && request.resource.data.username is string
+        && request.resource.data.username.size() > 0
+        && request.resource.data.username.size() <= 40
+        && request.resource.data.locationSharingEnabled is bool
+        && request.resource.data.dndActive is bool
+        && (request.resource.data.mood == null
+          || request.resource.data.mood in ['HAPPY', 'IN_LOVE', 'TIRED', 'CUDDLE', 'STRESSED', 'PLAYFUL']);
+
+      allow delete: if false;
+    }
+
+    match /pairingCodes/{code} {
+      allow read, write: if false;
+    }
+
+    match /couples/{coupleId} {
+      allow get: if isCoupleMember(coupleId);
+      allow list, create, update, delete: if false;
+
+      match /locations/{userId} {
+        allow get: if isCoupleMember(coupleId)
+          && (request.auth.uid == userId || resource.data.sharing == true);
+        allow list: if false;
+        allow create, update: if signedIn()
+          && request.auth.uid == userId
+          && isCoupleMember(coupleId)
+          && request.resource.data.keys().hasOnly([
+            'uid', 'latitude', 'longitude', 'accuracyMeters', 'sharing', 'updatedAt'
+          ])
+          && request.resource.data.uid == userId
+          && request.resource.data.sharing == true
+          && get(/databases/$(database)/documents/users/$(userId)).data.locationSharingEnabled == true
+          && request.resource.data.latitude is number
+          && request.resource.data.latitude >= -90
+          && request.resource.data.latitude <= 90
+          && request.resource.data.longitude is number
+          && request.resource.data.longitude >= -180
+          && request.resource.data.longitude <= 180
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if signedIn() && request.auth.uid == userId && isCoupleMember(coupleId);
+      }
+
+      match /messages/{messageId} {
+        allow get, list: if isCoupleMember(coupleId);
+        allow create: if isCoupleMember(coupleId)
+          && request.resource.data.keys().hasAll(['senderUid', 'recipientUid', 'kind', 'createdAt'])
+          && request.resource.data.keys().hasOnly([
+            'senderUid', 'recipientUid', 'kind', 'createdAt', 'text', 'touchType'
+          ])
+          && request.resource.data.senderUid == request.auth.uid
+          && request.resource.data.recipientUid != request.auth.uid
+          && get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds.hasAny([
+            request.resource.data.recipientUid
+          ])
+          && request.resource.data.createdAt == request.time
+          && ((request.resource.data.kind == 'message'
+              && request.resource.data.text is string
+              && request.resource.data.text.size() > 0
+              && request.resource.data.text.size() <= 160
+              && !request.resource.data.keys().hasAny(['touchType']))
+            || (request.resource.data.kind == 'touch'
+              && request.resource.data.touchType in ['CARINO', 'ABRAZO', 'BESO']
+              && !request.resource.data.keys().hasAny(['text'])));
+        allow update, delete: if false;
+      }
+    }
+  }
+}

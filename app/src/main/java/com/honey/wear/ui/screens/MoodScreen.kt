@@ -1,6 +1,11 @@
 package com.honey.wear.ui.screens
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -8,68 +13,66 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.*
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.ScalingLazyColumn
+import androidx.wear.compose.material.Text
 import com.honey.wear.R
 import com.honey.wear.data.MoodType
+import com.honey.wear.ui.components.HoneyBackChip
+import com.honey.wear.ui.components.HoneyIconTile
+import com.honey.wear.ui.components.moodIcon
 
 @Composable
 fun MoodScreen(
-    currentMood: MoodType,
+    currentMood: MoodType?,
     onSelectMood: (MoodType) -> Unit,
     onBack: () -> Unit
 ) {
-    val moods = listOf(
-        MoodType.HAPPY,
-        MoodType.IN_LOVE,
-        MoodType.TIRED,
-        MoodType.CUDDLE,
-        MoodType.STRESSED,
-        MoodType.PLAYFUL
-    )
+    val moods = MoodType.entries.toList()
 
     ScalingLazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(horizontal = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        contentPadding = PaddingValues(top = 4.dp, bottom = 16.dp)
     ) {
         item {
             Text(
                 text = stringResource(R.string.mood_title),
                 style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colors.primary,
-                modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)
+                color = MaterialTheme.colors.onBackground,
+                modifier = Modifier.padding(bottom = 3.dp)
+            )
+        }
+        item {
+            Text(
+                text = stringResource(R.string.mood_subtitle),
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                fontSize = 9.sp,
+                modifier = Modifier.padding(bottom = 3.dp)
             )
         }
 
-        // Two columns of moods
         moods.chunked(2).forEach { pair ->
             item {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    pair.forEach { m ->
-                        val isSelected = m == currentMood
-                        Chip(
-                            onClick = { onSelectMood(m) },
-                            label = { Text(stringResource(m.labelRes), fontSize = 11.sp) },
-                            icon = { Text(m.emoji, fontSize = 18.sp) },
-                            colors = if (isSelected) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors(),
-                            modifier = Modifier.weight(1f).padding(horizontal = 2.dp)
+                    pair.forEach { mood ->
+                        HoneyIconTile(
+                            label = stringResource(mood.labelRes),
+                            icon = moodIcon(mood),
+                            selected = mood == currentMood,
+                            modifier = Modifier.weight(1f),
+                            onClick = { onSelectMood(mood) }
                         )
                     }
                 }
             }
         }
 
-        item {
-            CompactChip(
-                onClick = onBack,
-                label = { Text("‹ Volver", fontSize = 11.sp) },
-                colors = ChipDefaults.secondaryChipColors(),
-                modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
-            )
-        }
+        item { HoneyBackChip(stringResource(R.string.back), onBack) }
     }
 }

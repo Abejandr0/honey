@@ -1,23 +1,52 @@
 package com.honey.wear.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChatBubbleOutline
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Mood
+import androidx.compose.material.icons.filled.Settings
+import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.ScalingLazyColumn
+import androidx.wear.compose.material.Text
 import com.honey.wear.R
 import com.honey.wear.data.MoodType
 import com.honey.wear.data.PartnerState
 import com.honey.wear.data.UserProfile
+import com.honey.wear.ui.components.HoneyIconTile
+import com.honey.wear.ui.components.moodIcon
 import kotlinx.coroutines.delay
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -26,8 +55,8 @@ import java.time.format.DateTimeFormatter
 fun HomeScreen(
     userProfile: UserProfile,
     partnerState: PartnerState,
-    myMood: MoodType,
-    daysTogether: Long,
+    myMood: MoodType?,
+    daysTogether: Long?,
     isDndActive: Boolean,
     onNavigateToTouch: () -> Unit,
     onNavigateToMessages: () -> Unit,
@@ -35,173 +64,176 @@ fun HomeScreen(
     onNavigateToMood: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
-    // Dynamic real-time clock ticker
     var currentTime by remember { mutableStateOf(LocalTime.now()) }
+    val settingsLabel = stringResource(R.string.nav_settings)
     LaunchedEffect(Unit) {
         while (true) {
             currentTime = LocalTime.now()
-            delay(1000)
+            delay(30_000)
         }
     }
-
-    val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-    val secondsFormatter = DateTimeFormatter.ofPattern("ss")
 
     ScalingLazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 10.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(MaterialTheme.colors.background)
+            .padding(horizontal = 11.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        contentPadding = PaddingValues(top = 3.dp, bottom = 14.dp)
     ) {
-        // Status Top Row: DND badge & Sync dot
         item {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp, bottom = 2.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Partner Avatar + Sync
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "${userProfile.avatarEmoji}💞${partnerState.avatarEmoji}", fontSize = 11.sp)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colors.primary)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        color = MaterialTheme.colors.primary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        text = if (isDndActive) stringResource(R.string.status_dnd) else userProfile.username,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.72f),
+                        fontSize = 9.sp,
+                        maxLines = 1
                     )
                 }
-
-                if (isDndActive) {
-                    Text(text = "🌙 DND", fontSize = 10.sp, color = MaterialTheme.colors.primary)
-                } else {
-                    Text(text = "100% ⚡", fontSize = 10.sp, color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f))
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .clickable(role = Role.Button, onClick = onNavigateToSettings)
+                        .semantics { contentDescription = settingsLabel },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        tint = MaterialTheme.colors.onSurface,
+                        modifier = Modifier.size(19.dp)
+                    )
                 }
             }
         }
 
-        // Digital Clock with seconds
         item {
+            Text(
+                text = currentTime.format(DateTimeFormatter.ofPattern("HH:mm")),
+                color = MaterialTheme.colors.onBackground,
+                fontSize = 34.sp,
+                lineHeight = 38.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        if (daysTogether != null) item {
             Row(
-                verticalAlignment = Alignment.Bottom,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(bottom = 2.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = null,
+                    tint = MaterialTheme.colors.primary,
+                    modifier = Modifier.size(13.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = stringResource(R.string.days_together_format, daysTogether),
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.82f),
+                    fontSize = 10.sp,
+                    maxLines = 1
+                )
+            }
+        }
+
+        item {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(vertical = 2.dp)
             ) {
-                Text(
-                    text = currentTime.format(timeFormatter),
-                    style = MaterialTheme.typography.display1.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 32.sp
-                    ),
-                    color = MaterialTheme.colors.onBackground
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-                Text(
-                    text = currentTime.format(secondsFormatter),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colors.primary,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-            }
-        }
-
-        // Days Together Counter Pill
-        item {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colors.primary.copy(alpha = 0.18f))
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = "💞 " + stringResource(R.string.days_together_format, daysTogether),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colors.primary
-                )
-            }
-        }
-
-        // Mutual Mood Bar
-        item {
-            Card(
-                onClick = onNavigateToMood,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "${partnerState.name}: ${partnerState.currentMood.emoji}",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    partnerState.mood?.let { mood ->
+                        Icon(
+                            imageVector = moodIcon(mood),
+                            contentDescription = stringResource(mood.labelRes),
+                            tint = MaterialTheme.colors.primary,
+                            modifier = Modifier.size(14.dp)
                         )
-                        Text(
-                            text = "Tú: ${myMood.emoji} (Tocar para cambiar)",
-                            fontSize = 9.5.sp,
-                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
-                        )
+                        Spacer(Modifier.width(4.dp))
                     }
-                    Text(text = "›", fontSize = 16.sp, color = MaterialTheme.colors.primary)
+                    Text(
+                        text = stringResource(
+                            R.string.partner_mood_format,
+                            partnerState.name,
+                            partnerState.mood?.let { stringResource(it.labelRes) } ?: stringResource(R.string.mood_not_set)
+                        ),
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.78f),
+                        fontSize = 9.sp,
+                        maxLines = 1
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = myMood?.let(::moodIcon) ?: Icons.Default.Mood,
+                        contentDescription = myMood?.let { stringResource(it.labelRes) }
+                            ?: stringResource(R.string.mood_not_set),
+                        tint = MaterialTheme.colors.primary.copy(alpha = 0.78f),
+                        modifier = Modifier.size(12.dp)
+                    )
+                    Spacer(Modifier.width(3.dp))
+                    Text(
+                        text = stringResource(
+                            R.string.my_mood_format,
+                            myMood?.let { stringResource(it.labelRes) } ?: stringResource(R.string.mood_not_set)
+                        ),
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.62f),
+                        fontSize = 8.sp,
+                        maxLines = 1
+                    )
                 }
             }
         }
 
-        // Navigation Chips: Cariño & Mensajes
         item {
-            Chip(
-                onClick = onNavigateToTouch,
-                label = { Text(stringResource(R.string.nav_touch), fontWeight = FontWeight.Bold, fontSize = 12.sp) },
-                icon = { Text("💗", fontSize = 16.sp) },
-                colors = ChipDefaults.primaryChipColors(),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
-            )
+            Row(modifier = Modifier.fillMaxWidth()) {
+                HoneyIconTile(
+                    label = stringResource(R.string.nav_touch),
+                    icon = Icons.Default.Favorite,
+                    modifier = Modifier.weight(1f),
+                    onClick = onNavigateToTouch
+                )
+                HoneyIconTile(
+                    label = stringResource(R.string.nav_messages),
+                    icon = Icons.Default.ChatBubbleOutline,
+                    modifier = Modifier.weight(1f),
+                    onClick = onNavigateToMessages
+                )
+            }
         }
 
         item {
-            Chip(
-                onClick = onNavigateToMessages,
-                label = { Text(stringResource(R.string.nav_messages), fontWeight = FontWeight.Bold, fontSize = 12.sp) },
-                icon = { Text("💬", fontSize = 16.sp) },
-                colors = ChipDefaults.secondaryChipColors(),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
-            )
+            Row(modifier = Modifier.fillMaxWidth()) {
+                HoneyIconTile(
+                    label = stringResource(R.string.nav_location),
+                    icon = Icons.Default.LocationOn,
+                    modifier = Modifier.weight(1f),
+                    onClick = onNavigateToLocation
+                )
+                HoneyIconTile(
+                    label = stringResource(R.string.nav_mood),
+                    icon = Icons.Default.Mood,
+                    modifier = Modifier.weight(1f),
+                    onClick = onNavigateToMood
+                )
+            }
         }
 
-        item {
-            Chip(
-                onClick = onNavigateToLocation,
-                label = { Text(stringResource(R.string.nav_location), fontWeight = FontWeight.Bold, fontSize = 12.sp) },
-                icon = { Text("📍", fontSize = 16.sp) },
-                colors = ChipDefaults.secondaryChipColors(),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
-            )
-        }
-
-        item {
-            Chip(
-                onClick = onNavigateToMood,
-                label = { Text(stringResource(R.string.nav_mood), fontWeight = FontWeight.Bold, fontSize = 12.sp) },
-                icon = { Text("🙂", fontSize = 16.sp) },
-                colors = ChipDefaults.secondaryChipColors(),
-                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
-            )
-        }
-
-        item {
-            CompactChip(
-                onClick = onNavigateToSettings,
-                label = { Text("⚙️ " + stringResource(R.string.nav_settings), fontSize = 11.sp) },
-                colors = ChipDefaults.secondaryChipColors(),
-                modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
-            )
-        }
+        item { Spacer(Modifier.height(2.dp)) }
     }
 }

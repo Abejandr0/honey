@@ -1,34 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Honey</string>
-    <string name="tagline">Couples Watch Tracker</string>
+    <string name="tagline">Always close</string>
 
     <!-- Auth -->
     <string name="login_title">Sign In</string>
     <string name="register_title">Register</string>
-    <string name="auth_required">Required to link watch</string>
-    <string name="email_or_user">User / PIN</string>
-    <string name="password_label">PIN (4 digits)</string>
+    <string name="auth_required">Your account protects your data</string>
+    <string name="name_label">Your name</string>
+    <string name="email_label">Email address</string>
+    <string name="password_label">Password</string>
     <string name="btn_login">Log In</string>
-    <string name="btn_register">Create Account</string>
-    <string name="quick_test_user">Quick Demo Fill</string>
-    <string name="auth_error">Invalid credentials</string>
+    <string name="btn_register">Create account</string>
+    <string name="need_account">New here? Create an account</string>
+    <string name="have_account">I already have an account</string>
+    <string name="firebase_setup_required">Firebase project is not connected</string>
+    <string name="firebase_auth_error">Could not sign in. Check your email and password.</string>
+    <string name="firebase_invalid_email">Enter a valid email address.</string>
+    <string name="firebase_email_in_use">An account already uses that email.</string>
+    <string name="firebase_weak_password">Password must have at least 6 characters.</string>
+    <string name="firebase_network_error">No Internet connection.</string>
+    <string name="firebase_profile_error">Could not load your profile.</string>
+    <string name="firebase_pairing_error">Could not link the accounts.</string>
+    <string name="firebase_generic_error">Something went wrong. Try again.</string>
+    <string name="loading_profile">Loading your profile…</string>
+    <string name="profile_unavailable">Could not open your profile.</string>
+    <string name="loading_partner">Loading your partner\'s profile…</string>
+    <string name="partner_unavailable">Could not load the linked profile.</string>
+    <string name="message_received_from">Message from %1$s</string>
+    <string name="loading">Connecting…</string>
+    <string name="auth_error">Could not validate this account</string>
 
     <!-- Initial Setup & Match -->
     <string name="setup_title">Initial Setup</string>
     <string name="setup_partner_match">Pair Smartwatch</string>
-    <string name="my_code_label">Your Partner Code:</string>
+    <string name="my_code_label">Your share code</string>
     <string name="enter_partner_code">Partner\'s Code</string>
+    <string name="pairing_code_label">Your partner\'s code</string>
+    <string name="create_pairing_code">Create a share code</string>
+    <string name="pair_action">Link with partner</string>
+    <string name="pairing_waiting">No partner linked yet</string>
+    <string name="pairing_code_created">Code is active</string>
+    <string name="pairing_code_expires">Expires in 24 hours and works once</string>
+    <string name="pairing_success">Partner linked</string>
+    <string name="pairing_error">Could not link that code</string>
+    <string name="or_enter_partner_code">Or enter the code they shared with you</string>
+    <string name="anniversary_optional">Date together (YYYY-MM-DD), optional</string>
+    <string name="copy_code">Copy code</string>
+    <string name="code_copied">Code copied</string>
+    <string name="refresh_pairing_code">Create a new code</string>
+    <string name="sign_out">Sign out</string>
     <string name="anniversary_date_label">Anniversary Date</string>
     <string name="day">Day</string>
     <string name="month">Month</string>
     <string name="year">Year</string>
-    <string name="btn_complete_setup">Launch Honey 💞</string>
+    <string name="btn_complete_setup">Continue</string>
 
     <!-- Home Watchface -->
     <string name="days_together_format">%1$d days together</string>
     <string name="partner_mood_prefix">Partner mood:</string>
     <string name="my_mood_prefix">My mood:</string>
+    <string name="partner_mood_format">%1$s · %2$s</string>
+    <string name="my_mood_format">You: %1$s</string>
+    <string name="mood_not_set">Not updated</string>
     <string name="status_connected">Synced</string>
     <string name="status_dnd">Do not disturb</string>
 
@@ -48,10 +82,10 @@
     <string name="desc_abrazo">Warm deep vibration</string>
     <string name="mode_beso">Kiss</string>
     <string name="desc_beso">Sparkling kiss burst</string>
-    <string name="touch_sent">Love sent! 💗</string>
-    <string name="touch_received_carino">Sent you a Love Touch! 💗</string>
-    <string name="touch_received_abrazo">Sent you a Big Hug! 🤗</string>
-    <string name="touch_received_beso">Sent you a Sweet Kiss! 😘</string>
+    <string name="touch_sent">Love sent</string>
+    <string name="touch_received_carino">Sent you love</string>
+    <string name="touch_received_abrazo">Sent you a hug</string>
+    <string name="touch_received_beso">Sent you a kiss</string>
 
     <!-- Quick Messages -->
     <string name="quick_messages_title">Quick Messages</string>
@@ -64,16 +98,28 @@
     <string name="msg_sent_toast">Message sent ✓</string>
 
     <!-- Real-time Location -->
-    <string name="location_title">GPS Location</string>
+    <string name="location_title">Your partner\'s location</string>
+    <string name="map_loading">Loading map…</string>
+    <string name="map_unavailable">Could not load the map</string>
+    <string name="location_waiting">Waiting for your partner\'s location</string>
+    <string name="location_updated">Updated %1$s</string>
+    <string name="map_attribution">Map © OpenStreetMap</string>
+    <string name="location_permission_required">Allow location access to share yours</string>
+    <string name="location_notification_title">Honey is sharing your location</string>
+    <string name="location_notification_body">Your location is shared with your partner until you pause sharing.</string>
+    <string name="location_notification_channel">Shared location</string>
     <string name="share_location_switch">Share my location</string>
     <string name="sharing_active">Sharing in real time</string>
     <string name="sharing_inactive">Location hidden</string>
     <string name="distance_format">%1$s away from you</string>
+    <string name="distance_meters">%1$d m</string>
+    <string name="distance_kilometers">%1$.1f km</string>
     <string name="partner_not_sharing">Your partner is not sharing location</string>
     <string name="btn_refresh_gps">Refresh GPS</string>
 
     <!-- Mood Tracker -->
     <string name="mood_title">How are you feeling?</string>
+    <string name="mood_subtitle">Choose a mood</string>
     <string name="mood_happy">Happy</string>
     <string name="mood_in_love">In Love</string>
     <string name="mood_tired">Tired</string>
@@ -84,6 +130,10 @@
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
+    <string name="dismiss">Tap to close</string>
+    <string name="back">Back</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_english">English</string>
     <string name="pref_language">Language</string>
     <string name="pref_theme">Color Theme</string>
     <string name="pref_dark_mode">OLED Dark Mode</string>
@@ -94,4 +144,14 @@
     <string name="pref_logout">Sign Out / Unpair</string>
     <string name="dnd_summary_title">While you were resting:</string>
     <string name="dnd_summary_format">%1$d touches and %2$d messages received</string>
+
+    <!-- Color themes -->
+    <string name="theme_honey">Honey</string>
+    <string name="theme_blue">Blue</string>
+    <string name="theme_pink">Pink</string>
+    <string name="theme_purple">Violet</string>
+    <string name="theme_green">Green</string>
+    <string name="theme_coral">Coral</string>
+    <string name="theme_cyan">Cyan</string>
+    <string name="theme_ruby">Ruby</string>
 </resources>

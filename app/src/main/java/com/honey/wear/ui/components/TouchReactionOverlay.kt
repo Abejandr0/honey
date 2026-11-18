@@ -4,13 +4,16 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -20,6 +23,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.honey.wear.R
 import com.honey.wear.data.TouchType
+import androidx.wear.compose.material.Icon
 
 @Composable
 fun TouchReactionOverlay(
@@ -38,16 +42,13 @@ fun TouchReactionOverlay(
         label = "scale"
     )
 
-    val gradient = when (touchType) {
-        TouchType.CARINO -> Brush.radialGradient(
-            listOf(Color(0xFFF43F5E), Color(0xFF881337))
-        )
-        TouchType.ABRAZO -> Brush.radialGradient(
-            listOf(Color(0xFFF59E0B), Color(0xFF7C2D12))
-        )
-        TouchType.BESO -> Brush.radialGradient(
-            listOf(Color(0xFFD946EF), Color(0xFF581C87))
-        )
+    val gradient = Brush.radialGradient(
+        listOf(MaterialTheme.colors.primary.copy(alpha = 0.32f), MaterialTheme.colors.background)
+    )
+    val icon = when (touchType) {
+        TouchType.CARINO -> Icons.Default.Favorite
+        TouchType.ABRAZO -> Icons.Default.FavoriteBorder
+        TouchType.BESO -> Icons.Default.AutoAwesome
     }
 
     val titleRes = when (touchType) {
@@ -69,26 +70,28 @@ fun TouchReactionOverlay(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = touchType.emoji,
-                fontSize = 54.sp,
+                text = stringResource(titleRes),
+                style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.ExtraBold),
+                color = MaterialTheme.colors.onBackground,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.scale(scale)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = stringResource(titleRes),
-                style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.ExtraBold),
-                color = Color.White,
-                textAlign = TextAlign.Center
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colors.primary,
+                modifier = Modifier.size(42.dp)
             )
 
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
-                text = "Toca para cerrar",
+                text = stringResource(R.string.dismiss),
                 fontSize = 9.sp,
-                color = Color.White.copy(alpha = 0.8f)
+                color = MaterialTheme.colors.onSurface.copy(alpha = 0.72f)
             )
         }
     }

@@ -1,7 +1,16 @@
 package com.honey.wear.ui.screens
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -9,167 +18,148 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.ScalingLazyColumn
+import androidx.wear.compose.material.Text
 import com.honey.wear.R
+import com.honey.wear.ui.components.HoneyTextField
 
 @Composable
 fun AuthScreen(
-    onAuthSuccess: () -> Unit,
-    onLogin: (pin: String) -> Boolean,
-    onRegister: (username: String, pin: String) -> Boolean
+    isFirebaseConfigured: Boolean,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onLogin: (email: String, password: String) -> Unit,
+    onRegister: (name: String, email: String, password: String) -> Unit
 ) {
     var isRegisterMode by remember { mutableStateOf(false) }
-    var usernameInput by remember { mutableStateOf("") }
-    var pinInput by remember { mutableStateOf("") }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    val colors = MaterialTheme.colors
 
     ScalingLazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(colors.background)
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        contentPadding = PaddingValues(top = 10.dp, bottom = 18.dp)
     ) {
-        // App Brand Icon
         item {
-            Text(
-                text = "🍯",
-                fontSize = 28.sp,
-                modifier = Modifier.padding(top = 8.dp)
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = null,
+                tint = colors.primary,
+                modifier = Modifier.padding(bottom = 3.dp).height(25.dp)
             )
         }
-
         item {
             Text(
                 text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.title2.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp
-                ),
-                color = MaterialTheme.colors.primary
+                color = colors.onBackground,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.ExtraBold
             )
         }
-
         item {
             Text(
                 text = stringResource(if (isRegisterMode) R.string.register_title else R.string.login_title),
-                style = MaterialTheme.typography.caption2,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center
+                color = colors.onSurface.copy(alpha = 0.68f),
+                fontSize = 10.sp,
+                modifier = Modifier.padding(bottom = 4.dp)
             )
         }
 
-        // Mode Switcher (Login / Register)
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                CompactChip(
-                    onClick = {
-                        isRegisterMode = false
-                        errorMessage = null
-                    },
-                    label = { Text("Entrar", fontSize = 11.sp) },
-                    colors = if (!isRegisterMode) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                CompactChip(
-                    onClick = {
-                        isRegisterMode = true
-                        errorMessage = null
-                    },
-                    label = { Text("Registro", fontSize = 11.sp) },
-                    colors = if (isRegisterMode) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
+        if (!isFirebaseConfigured) {
+            item {
+                Text(
+                    text = stringResource(R.string.firebase_setup_required),
+                    color = colors.error,
+                    fontSize = 9.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
             }
         }
 
-        // If register mode, show username preview / quick options
         if (isRegisterMode) {
             item {
-                Chip(
-                    onClick = {
-                        usernameInput = if (usernameInput == "Abe") "Dani" else "Abe"
-                    },
-                    label = {
-                        Text(
-                            text = if (usernameInput.isBlank()) "Nombre: [Tocar Abe]" else "Nombre: $usernameInput",
-                            fontSize = 12.sp
-                        )
-                    },
-                    colors = ChipDefaults.secondaryChipColors(),
-                    modifier = Modifier.fillMaxWidth()
+                HoneyTextField(
+                    value = name,
+                    onValueChange = { name = it.take(40) },
+                    label = stringResource(R.string.name_label),
                 )
             }
         }
-
-        // PIN display / input chip
         item {
-            Chip(
-                onClick = {
-                    // Cyclic PIN helper for easy watch testing
-                    pinInput = if (pinInput.length >= 4) "" else pinInput + "1"
-                },
-                label = {
-                    val display = if (pinInput.isEmpty()) "Tocar para PIN (4 dígitos)" else "PIN: ${"•".repeat(pinInput.length)}"
-                    Text(display, fontSize = 12.sp)
-                },
-                colors = ChipDefaults.secondaryChipColors(),
-                modifier = Modifier.fillMaxWidth()
+            HoneyTextField(
+                value = email,
+                onValueChange = { email = it.trim().take(254) },
+                label = stringResource(R.string.email_label),
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Email,
+                imeAction = androidx.compose.ui.text.input.ImeAction.Next
+            )
+        }
+        item {
+            HoneyTextField(
+                value = password,
+                onValueChange = { password = it.take(128) },
+                label = stringResource(R.string.password_label),
+                keyboardType = androidx.compose.ui.text.input.KeyboardType.Password,
+                imeAction = androidx.compose.ui.text.input.ImeAction.Done,
+                secret = true
             )
         }
 
-        // Error message if any
         if (errorMessage != null) {
             item {
                 Text(
-                    text = errorMessage ?: "",
-                    color = MaterialTheme.colors.error,
-                    fontSize = 11.sp,
-                    textAlign = TextAlign.Center
+                    text = errorMessage,
+                    color = colors.error,
+                    fontSize = 9.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 3.dp)
                 )
             }
         }
 
-        // Submit Button
         item {
             Button(
                 onClick = {
-                    if (isRegisterMode) {
-                        val name = usernameInput.ifBlank { "Usuario" }
-                        val pin = pinInput.ifBlank { "1234" }
-                        if (onRegister(name, pin)) onAuthSuccess() else errorMessage = "PIN mínimo 4 dígitos"
-                    } else {
-                        val pin = pinInput.ifBlank { "1234" }
-                        if (onLogin(pin)) onAuthSuccess() else errorMessage = "PIN mínimo 4 dígitos"
-                    }
+                    if (isRegisterMode) onRegister(name.trim(), email.trim(), password)
+                    else onLogin(email.trim(), password)
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
+                enabled = isFirebaseConfigured && !isLoading && email.isNotBlank() && password.isNotEmpty() &&
+                    (!isRegisterMode || name.isNotBlank()),
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 colors = ButtonDefaults.primaryButtonColors()
             ) {
                 Text(
-                    text = stringResource(if (isRegisterMode) R.string.btn_register else R.string.btn_login),
+                    text = stringResource(if (isLoading) R.string.loading else if (isRegisterMode) R.string.btn_register else R.string.btn_login),
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
+                    fontSize = 11.sp
                 )
             }
         }
 
-        // Quick Auto-Fill for grading/evaluation
         item {
-            CompactChip(
-                onClick = {
-                    pinInput = "1234"
-                    usernameInput = "Abejandro"
-                    if (onLogin("1234")) onAuthSuccess()
-                },
-                label = { Text("⚡ Acceso Rápido Demo", fontSize = 10.sp) },
-                colors = ChipDefaults.secondaryChipColors()
-            )
+            Button(
+                onClick = { isRegisterMode = !isRegisterMode },
+                enabled = !isLoading,
+                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                colors = ButtonDefaults.secondaryButtonColors()
+            ) {
+                Text(
+                    text = stringResource(if (isRegisterMode) R.string.have_account else R.string.need_account),
+                    fontSize = 9.sp
+                )
+            }
         }
     }
 }

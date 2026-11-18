@@ -1,6 +1,16 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
+}
+
+val firebaseConfigFiles = listOf(
+    file("google-services.json"),
+    file("src/debug/google-services.json"),
+    file("src/release/google-services.json")
+)
+if (firebaseConfigFiles.any { it.exists() }) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 android {
@@ -36,22 +46,20 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
     }
 
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
@@ -81,4 +89,13 @@ dependencies {
 
     // Wear OS standalone support
     implementation("androidx.wear:wear:1.3.0")
+
+    // Firebase accounts, live couple data and secure pairing calls
+    implementation(platform("com.google.firebase:firebase-bom:35.2.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-functions")
+
+    // Interactive real street map (OpenStreetMap data via OpenFreeMap)
+    implementation("org.maplibre.gl:android-sdk:11.8.0")
 }

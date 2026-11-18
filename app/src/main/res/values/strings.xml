@@ -1,34 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Honey</string>
-    <string name="tagline">Tracker de Parejas</string>
+    <string name="tagline">Siempre cerca</string>
 
     <!-- Auth -->
     <string name="login_title">Iniciar Sesión</string>
     <string name="register_title">Registrarse</string>
-    <string name="auth_required">Obligatorio para vincular</string>
-    <string name="email_or_user">Usuario / PIN</string>
-    <string name="password_label">Clave (4 dígitos)</string>
+    <string name="auth_required">Tu cuenta protege tus datos</string>
+    <string name="name_label">Tu nombre</string>
+    <string name="email_label">Correo electrónico</string>
+    <string name="password_label">Contraseña</string>
     <string name="btn_login">Entrar</string>
-    <string name="btn_register">Crear Cuenta</string>
-    <string name="quick_test_user">Autocompletar Prueba</string>
-    <string name="auth_error">Credenciales inválidas</string>
+    <string name="btn_register">Crear cuenta</string>
+    <string name="need_account">¿Aún no tienes cuenta? Regístrate</string>
+    <string name="have_account">Ya tengo una cuenta</string>
+    <string name="firebase_setup_required">Falta conectar el proyecto de Firebase</string>
+    <string name="firebase_auth_error">No se pudo iniciar sesión. Revisa el correo y la contraseña.</string>
+    <string name="firebase_invalid_email">Escribe un correo electrónico válido.</string>
+    <string name="firebase_email_in_use">Ese correo ya tiene una cuenta.</string>
+    <string name="firebase_weak_password">La contraseña debe tener al menos 6 caracteres.</string>
+    <string name="firebase_network_error">No hay conexión a Internet.</string>
+    <string name="firebase_profile_error">No se pudo cargar el perfil.</string>
+    <string name="firebase_pairing_error">No se pudo completar la vinculación.</string>
+    <string name="firebase_generic_error">Algo salió mal. Inténtalo otra vez.</string>
+    <string name="loading_profile">Cargando tu perfil…</string>
+    <string name="profile_unavailable">No se pudo abrir tu perfil.</string>
+    <string name="loading_partner">Cargando el perfil de tu pareja…</string>
+    <string name="partner_unavailable">No se pudo cargar el perfil vinculado.</string>
+    <string name="message_received_from">Mensaje de %1$s</string>
+    <string name="loading">Conectando…</string>
+    <string name="auth_error">No se pudo validar la cuenta</string>
 
     <!-- Initial Setup & Match -->
     <string name="setup_title">Configuración Inicial</string>
     <string name="setup_partner_match">Vincular Smartwatch</string>
-    <string name="my_code_label">Tu Código de Pareja:</string>
+    <string name="my_code_label">Tu código para compartir</string>
     <string name="enter_partner_code">Código de tu Pareja</string>
+    <string name="pairing_code_label">Código de tu pareja</string>
+    <string name="create_pairing_code">Crear código para compartir</string>
+    <string name="pair_action">Vincular pareja</string>
+    <string name="pairing_waiting">Aún no hay una pareja vinculada</string>
+    <string name="pairing_code_created">Código activo</string>
+    <string name="pairing_code_expires">Caduca en 24 horas y solo se usa una vez</string>
+    <string name="pairing_success">Pareja vinculada</string>
+    <string name="pairing_error">No se pudo vincular ese código</string>
+    <string name="or_enter_partner_code">O escribe el código que te compartieron</string>
+    <string name="anniversary_optional">Fecha juntos opcional (AAAA-MM-DD)</string>
+    <string name="copy_code">Copiar código</string>
+    <string name="code_copied">Código copiado</string>
+    <string name="refresh_pairing_code">Generar otro código</string>
+    <string name="sign_out">Cerrar sesión</string>
     <string name="anniversary_date_label">Fecha de Inicio de Noviazgo</string>
     <string name="day">Día</string>
     <string name="month">Mes</string>
     <string name="year">Año</string>
-    <string name="btn_complete_setup">Comenzar Honey 💞</string>
+    <string name="btn_complete_setup">Continuar</string>
 
     <!-- Home Watchface -->
     <string name="days_together_format">%1$d días juntos</string>
     <string name="partner_mood_prefix">Su ánimo:</string>
     <string name="my_mood_prefix">Tu ánimo:</string>
+    <string name="partner_mood_format">%1$s · %2$s</string>
+    <string name="my_mood_format">Tú: %1$s</string>
+    <string name="mood_not_set">Sin actualizar</string>
     <string name="status_connected">Sincronizado</string>
     <string name="status_dnd">No molestar</string>
 
@@ -48,10 +82,10 @@
     <string name="desc_abrazo">Vibración cálida y profunda</string>
     <string name="mode_beso">Beso</string>
     <string name="desc_beso">Ráfaga de besos y cosquilleo</string>
-    <string name="touch_sent">¡Cariño enviado! 💗</string>
-    <string name="touch_received_carino">¡Te envió un Toque de Cariño! 💗</string>
-    <string name="touch_received_abrazo">¡Te envió un Gran Abrazo! 🤗</string>
-    <string name="touch_received_beso">¡Te envió un Dulce Beso! 😘</string>
+    <string name="touch_sent">Cariño enviado</string>
+    <string name="touch_received_carino">Te envió cariño</string>
+    <string name="touch_received_abrazo">Te envió un abrazo</string>
+    <string name="touch_received_beso">Te envió un beso</string>
 
     <!-- Quick Messages -->
     <string name="quick_messages_title">Mensajes Rápidos</string>
@@ -64,16 +98,28 @@
     <string name="msg_sent_toast">Mensaje enviado ✓</string>
 
     <!-- Real-time Location -->
-    <string name="location_title">Ubicación GPS</string>
+    <string name="location_title">Ubicación de tu pareja</string>
+    <string name="map_loading">Cargando mapa…</string>
+    <string name="map_unavailable">No se pudo cargar el mapa</string>
+    <string name="location_waiting">Esperando la ubicación de tu pareja</string>
+    <string name="location_updated">Actualizada %1$s</string>
+    <string name="map_attribution">Mapa © OpenStreetMap</string>
+    <string name="location_permission_required">Activa el permiso de ubicación para compartir la tuya</string>
+    <string name="location_notification_title">Honey comparte tu ubicación</string>
+    <string name="location_notification_body">La ubicación se comparte con tu pareja hasta que la pauses.</string>
+    <string name="location_notification_channel">Ubicación compartida</string>
     <string name="share_location_switch">Compartir mi ubicación</string>
     <string name="sharing_active">Compartiendo en tiempo real</string>
     <string name="sharing_inactive">Ubicación oculta</string>
     <string name="distance_format">a %1$s de ti</string>
+    <string name="distance_meters">%1$d m</string>
+    <string name="distance_kilometers">%1$.1f km</string>
     <string name="partner_not_sharing">Tu pareja no está compartiendo su ubicación</string>
     <string name="btn_refresh_gps">Actualizar GPS</string>
 
     <!-- Mood Tracker -->
     <string name="mood_title">¿Cómo te sientes?</string>
+    <string name="mood_subtitle">Elige un estado de ánimo</string>
     <string name="mood_happy">Feliz</string>
     <string name="mood_in_love">Enamorado/a</string>
     <string name="mood_tired">Cansado/a</string>
@@ -84,6 +130,10 @@
 
     <!-- Settings -->
     <string name="settings_title">Ajustes</string>
+    <string name="dismiss">Toca para cerrar</string>
+    <string name="back">Volver</string>
+    <string name="language_spanish">Español</string>
+    <string name="language_english">English</string>
     <string name="pref_language">Idioma</string>
     <string name="pref_theme">Tema de Color</string>
     <string name="pref_dark_mode">Modo Oscuro OLED</string>
@@ -94,4 +144,14 @@
     <string name="pref_logout">Cerrar Sesión / Desvincular</string>
     <string name="dnd_summary_title">Mientras descansabas:</string>
     <string name="dnd_summary_format">%1$d toques y %2$d mensajes recibidos</string>
+
+    <!-- Color themes -->
+    <string name="theme_honey">Miel</string>
+    <string name="theme_blue">Azul</string>
+    <string name="theme_pink">Rosa</string>
+    <string name="theme_purple">Violeta</string>
+    <string name="theme_green">Verde</string>
+    <string name="theme_coral">Coral</string>
+    <string name="theme_cyan">Cian</string>
+    <string name="theme_ruby">Rubí</string>
 </resources>

@@ -1,178 +1,242 @@
 package com.honey.wear.ui.screens
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Favorite
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.ScalingLazyColumn
+import androidx.wear.compose.material.Text
 import com.honey.wear.R
+import com.honey.wear.ui.components.HoneyTextField
 import java.time.LocalDate
 
 @Composable
 fun SetupScreen(
-    myPairingCode: String,
-    onSetupCompleted: (partnerCode: String, anniversary: LocalDate, avatar: String) -> Unit
+    pairingCode: String?,
+    isGeneratingCode: Boolean,
+    isPairing: Boolean,
+    errorMessage: String?,
+    onCreatePairingCode: () -> Unit,
+    onPairWithCode: (code: String, anniversaryDate: LocalDate?) -> Unit,
+    onLogout: () -> Unit
 ) {
-    val avatars = listOf("🌸", "🐻", "🐱", "🦊", "🌙", "🐝")
-    var selectedAvatarIndex by remember { mutableStateOf(0) }
-    var partnerCode by remember { mutableStateOf("HNY-5521") }
-
-    // Anniversary state
-    var day by remember { mutableStateOf(14) }
-    var month by remember { mutableStateOf(2) }
-    var year by remember { mutableStateOf(2024) }
+    var partnerCode by remember { mutableStateOf("") }
+    var anniversaryText by remember { mutableStateOf("") }
+    var copiedCode by remember { mutableStateOf(false) }
+    val clipboard = LocalClipboardManager.current
+    val colors = MaterialTheme.colors
 
     ScalingLazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(colors.background)
+            .padding(horizontal = 15.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        contentPadding = PaddingValues(top = 8.dp, bottom = 18.dp)
     ) {
         item {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = null,
+                tint = colors.primary,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        item {
             Text(
-                text = stringResource(R.string.setup_title),
+                text = stringResource(R.string.setup_partner_match),
+                color = colors.onBackground,
                 style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colors.primary,
-                modifier = Modifier.padding(top = 6.dp)
-            )
-        }
-
-        // Avatar Picker
-        item {
-            Text(
-                text = "Elige tu avatar:",
-                style = MaterialTheme.typography.caption2,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f)
-            )
-        }
-
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                avatars.take(3).forEachIndexed { idx, emo ->
-                    CompactChip(
-                        onClick = { selectedAvatarIndex = idx },
-                        label = { Text(emo, fontSize = 16.sp) },
-                        colors = if (selectedAvatarIndex == idx) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
-                    )
-                }
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                avatars.drop(3).forEachIndexed { idx, emo ->
-                    val actualIdx = idx + 3
-                    CompactChip(
-                        onClick = { selectedAvatarIndex = actualIdx },
-                        label = { Text(emo, fontSize = 16.sp) },
-                        colors = if (selectedAvatarIndex == actualIdx) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
-                    )
-                }
-            }
-        }
-
-        // My Pairing Code
-        item {
-            Card(
-                onClick = {},
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = stringResource(R.string.my_code_label),
-                        style = MaterialTheme.typography.caption3,
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
-                    )
-                    Text(
-                        text = myPairingCode,
-                        style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.ExtraBold),
-                        color = MaterialTheme.colors.primary,
-                        letterSpacing = 2.sp
-                    )
-                }
-            }
-        }
-
-        // Partner Code Match Chip
-        item {
-            Chip(
-                onClick = {
-                    partnerCode = if (partnerCode == "HNY-5521") "HNY-9901" else "HNY-5521"
-                },
-                label = { Text("Pareja: $partnerCode", fontSize = 12.sp) },
-                secondaryLabel = { Text("Tocar para vincular", fontSize = 10.sp) },
-                colors = ChipDefaults.secondaryChipColors(),
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-
-        // Anniversary Date Section
-        item {
-            Text(
-                text = stringResource(R.string.anniversary_date_label),
-                style = MaterialTheme.typography.caption2,
-                color = MaterialTheme.colors.onSurface.copy(alpha = 0.8f),
                 textAlign = TextAlign.Center
             )
         }
+        item {
+            Text(
+                text = stringResource(R.string.pairing_waiting),
+                color = colors.onSurface.copy(alpha = 0.7f),
+                fontSize = 9.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 3.dp)
+            )
+        }
 
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                // Day adjuster
-                CompactChip(
-                    onClick = { day = if (day >= 31) 1 else day + 1 },
-                    label = { Text("Día: $day", fontSize = 11.sp) },
-                    colors = ChipDefaults.secondaryChipColors()
+            Text(
+                text = stringResource(R.string.my_code_label),
+                color = colors.onSurface,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 10.sp,
+                modifier = Modifier.padding(top = 3.dp)
+            )
+        }
+        if (pairingCode.isNullOrBlank()) {
+            item {
+                Button(
+                    onClick = onCreatePairingCode,
+                    enabled = !isGeneratingCode,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    colors = ButtonDefaults.primaryButtonColors()
+                ) {
+                    Text(
+                        text = stringResource(if (isGeneratingCode) R.string.loading else R.string.create_pairing_code),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        } else {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = pairingCode,
+                        color = colors.primary,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = 2.sp
+                    )
+                    Button(
+                        onClick = {
+                            clipboard.setText(AnnotatedString(pairingCode))
+                            copiedCode = true
+                        },
+                        modifier = Modifier.padding(start = 5.dp).size(36.dp),
+                        colors = ButtonDefaults.secondaryButtonColors()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ContentCopy,
+                            contentDescription = stringResource(R.string.copy_code),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+            item {
+                Text(
+                    text = stringResource(R.string.pairing_code_expires),
+                    color = colors.onSurface.copy(alpha = 0.58f),
+                    fontSize = 8.sp,
+                    textAlign = TextAlign.Center
                 )
-                // Month adjuster
-                CompactChip(
-                    onClick = { month = if (month >= 12) 1 else month + 1 },
-                    label = { Text("Mes: $month", fontSize = 11.sp) },
-                    colors = ChipDefaults.secondaryChipColors()
-                )
-                // Year adjuster
-                CompactChip(
-                    onClick = { year = if (year >= 2026) 2020 else year + 1 },
-                    label = { Text("$year", fontSize = 11.sp) },
-                    colors = ChipDefaults.secondaryChipColors()
+            }
+            if (copiedCode) {
+                item {
+                    Text(
+                        text = stringResource(R.string.code_copied),
+                        color = colors.primary,
+                        fontSize = 8.sp
+                    )
+                }
+            }
+            item {
+                Button(
+                    onClick = onCreatePairingCode,
+                    enabled = !isGeneratingCode,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.secondaryButtonColors()
+                ) {
+                    Text(stringResource(R.string.refresh_pairing_code), fontSize = 9.sp)
+                }
+            }
+        }
+
+        item {
+            Text(
+                text = stringResource(R.string.or_enter_partner_code),
+                color = colors.onSurface.copy(alpha = 0.62f),
+                fontSize = 9.sp,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+        item {
+            HoneyTextField(
+                value = partnerCode,
+                onValueChange = { partnerCode = it.uppercase().filter(Char::isLetterOrDigit).take(12) },
+                label = stringResource(R.string.pairing_code_label),
+                keyboardType = KeyboardType.Ascii,
+                imeAction = ImeAction.Next
+            )
+        }
+        item {
+            HoneyTextField(
+                value = anniversaryText,
+                onValueChange = { anniversaryText = it.take(10) },
+                label = stringResource(R.string.anniversary_optional),
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Done
+            )
+        }
+
+        if (errorMessage != null) {
+            item {
+                Text(
+                    text = errorMessage,
+                    color = colors.error,
+                    fontSize = 9.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 3.dp)
                 )
             }
         }
 
-        // Finish Setup Button
         item {
             Button(
                 onClick = {
-                    val date = try {
-                        LocalDate.of(year, month, day)
-                    } catch (e: Exception) {
-                        LocalDate.of(2024, 2, 14)
+                    val date = anniversaryText.takeIf { it.isNotBlank() }?.let {
+                        runCatching { LocalDate.parse(it) }.getOrNull()
                     }
-                    onSetupCompleted(partnerCode, date, avatars[selectedAvatarIndex])
+                    onPairWithCode(partnerCode.trim(), date)
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp),
+                enabled = !isPairing && partnerCode.length >= 6 &&
+                    (anniversaryText.isBlank() || runCatching { LocalDate.parse(anniversaryText) }.isSuccess),
+                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
                 colors = ButtonDefaults.primaryButtonColors()
             ) {
                 Text(
-                    text = stringResource(R.string.btn_complete_setup),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
+                    text = stringResource(if (isPairing) R.string.loading else R.string.pair_action),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
                 )
+            }
+        }
+
+        item {
+            Button(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                colors = ButtonDefaults.secondaryButtonColors()
+            ) {
+                Text(stringResource(R.string.sign_out), fontSize = 9.sp)
             }
         }
     }
